@@ -14,9 +14,11 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return ShadApp.materialRouter(
-      title: 'University-Enterprise Collaboration System',
+      title: 'Mobile-app',
+      themeMode: ThemeMode.system,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      debugShowCheckedModeBanner: false,
       routerDelegate: router.routerDelegate,
       routeInformationParser: router.routeInformationParser,
       routeInformationProvider: router.routeInformationProvider,

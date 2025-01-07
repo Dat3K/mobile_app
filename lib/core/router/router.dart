@@ -1,71 +1,92 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_app/features/intro/views/introduction_animation_screen.dart';
-import '../../features/auth/views/login_view.dart';
-import '../../features/auth/views/register_view.dart';
-import '../../features/student/views/student_event_view.dart';
-import '../../features/enterprise/views/enterprise_event_view.dart';
-import '../services/auth_service.dart';
-import 'package:get_it/get_it.dart';
+import '../../features/auth/domain/value_objects/user_role.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/faculty/presentation/pages/faculty_home_page.dart';
+import '../../features/student/presentation/pages/student_home_page.dart';
+import '../../features/enterprise/presentation/pages/enterprise_home_page.dart';
+import '../constants/app_routes.dart';
+import '../error/error_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authService = GetIt.instance<AuthService>();
+  final authState = ref.watch(authProvider);
+
+  String? getHomePathForRole(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return AppRoutes.faculty;
+      case UserRole.student:
+        return AppRoutes.student;
+      case UserRole.enterprise:
+        return AppRoutes.enterprise;
+    }
+  }
 
   return GoRouter(
+    debugLogDiagnostics: true,
     routes: [
       GoRoute(
-        path: '/',
+        path: AppRoutes.initial,
         redirect: (context, state) {
-          if (!authService.isLoggedIn()) {
-            return '/login';
+          if (authState.user == null) {
+            return AppRoutes.login;
+          }
+          return getHomePathForRole(authState.user!.role);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (context, state) => LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        builder: (context, state) => RegisterPage(),
+      ),
+      // Faculty Routes
+      GoRoute(
+        path: AppRoutes.faculty,
+        builder: (context, state) => const FacultyHomePage(),
+        redirect: (context, state) {
+          if (authState.user == null) {
+            return AppRoutes.login;
+          }
+          if (authState.user!.role != UserRole.faculty) {
+            return getHomePathForRole(authState.user!.role);
           }
           return null;
         },
-        builder: (context, state) => const LoginView(),
       ),
+      // Student Routes
       GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginView(),
+        path: AppRoutes.student,
+        builder: (context, state) => const StudentHomePage(),
+        redirect: (context, state) {
+          if (authState.user == null) {
+            return AppRoutes.login;
+          }
+          if (authState.user!.role != UserRole.student) {
+            return getHomePathForRole(authState.user!.role);
+          }
+          return null;
+        },
       ),
+      // Enterprise Routes
       GoRoute(
-        path: '/register',
-        builder: (context, state) => const RegisterView(),
-      ),
-      GoRoute(
-        path: '/student/events',
-        builder: (context, state) => const StudentEventView(),
-      ),
-      GoRoute(
-        path: '/enterprise/events',
-        builder: (context, state) => const EnterpriseEventView(),
+        path: AppRoutes.enterprise,
+        builder: (context, state) => const EnterpriseHomePage(),
+        redirect: (context, state) {
+          if (authState.user == null) {
+            return AppRoutes.login;
+          }
+          if (authState.user!.role != UserRole.enterprise) {
+            return getHomePathForRole(authState.user!.role);
+          }
+          return null;
+        },
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Text('Error: ${state.error}'),
-      ),
-    ),
-    redirect: (context, state) {
-      final isLoggedIn = authService.isLoggedIn();
-      final isLoginRoute = state.matchedLocation == '/login';
-      final isRegisterRoute = state.matchedLocation == '/register';
-
-      if (!isLoggedIn && !isLoginRoute && !isRegisterRoute) {
-        return '/login';
-      }
-
-      if (isLoggedIn && (isLoginRoute || isRegisterRoute)) {
-        final user = authService.getCurrentUser();
-        if (user != null) {
-          if (user.role == 'student') {
-            return '/student/events';
-          } else if (user.role == 'enterprise') {
-            return '/enterprise/events';
-          }
-        }
-      }
-      return null;
-    },
+    errorBuilder: (context, state) => ErrorPage(error: state.error),
   );
 });

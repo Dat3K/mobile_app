@@ -10,11 +10,13 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'en': {
       'login': 'Login',
+      'logout': 'Log out',
       'register': 'Register',
       'email': 'Email',
       'password': 'Password',
@@ -30,6 +32,7 @@ class AppLocalizations {
     },
     'vi': {
       'login': 'Đăng nhập',
+      'logout': 'Đăng xuất',
       'register': 'Đăng ký',
       'email': 'Email',
       'password': 'Mật khẩu',
@@ -46,21 +49,27 @@ class AppLocalizations {
   };
 
   String get login => _localizedValues[locale.languageCode]!['login']!;
+  String get logout => _localizedValues[locale.languageCode]!['logout']!;
   String get register => _localizedValues[locale.languageCode]!['register']!;
   String get email => _localizedValues[locale.languageCode]!['email']!;
   String get password => _localizedValues[locale.languageCode]!['password']!;
   String get fullName => _localizedValues[locale.languageCode]!['fullName']!;
   String get role => _localizedValues[locale.languageCode]!['role']!;
   String get student => _localizedValues[locale.languageCode]!['student']!;
-  String get enterprise => _localizedValues[locale.languageCode]!['enterprise']!;
+  String get enterprise =>
+      _localizedValues[locale.languageCode]!['enterprise']!;
   String get events => _localizedValues[locale.languageCode]!['events']!;
-  String get createEvent => _localizedValues[locale.languageCode]!['createEvent']!;
+  String get createEvent =>
+      _localizedValues[locale.languageCode]!['createEvent']!;
   String get editEvent => _localizedValues[locale.languageCode]!['editEvent']!;
-  String get deleteEvent => _localizedValues[locale.languageCode]!['deleteEvent']!;
-  String get registerForEvent => _localizedValues[locale.languageCode]!['registerForEvent']!;
+  String get deleteEvent =>
+      _localizedValues[locale.languageCode]!['deleteEvent']!;
+  String get registerForEvent =>
+      _localizedValues[locale.languageCode]!['registerForEvent']!;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
