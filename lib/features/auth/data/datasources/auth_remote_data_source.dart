@@ -1,54 +1,76 @@
-import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
+import 'package:mobile_app/core/error/failures.dart';
 import '../../../../core/api/api_client.dart';
 import '../models/user_model.dart';
+import '../models/session_model.dart';
+import '../../domain/value_objects/user_role.dart';
+
+class AuthResponse {
+  final UserModel user;
+  final SessionModel session;
+
+  AuthResponse({required this.user, required this.session});
+
+  factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    return AuthResponse(
+      user: UserModel.fromJson(json['user']),
+      session: SessionModel.fromJson(json['session']),
+    );
+  }
+}
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> login(String email, String password);
-  Future<UserModel> register(String email, String password, String fullName, UserRole role);
-  Future<void> logout();
-  Future<UserModel> getCurrentUser();
+  Future<AuthResponse> login(String email, String password);
+  Future<AuthResponse> register(
+      String email, String password, String fullName, UserRole role);
   Future<void> forgotPassword(String email);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final ApiClient client;
+  final ApiClient _client;
 
-  AuthRemoteDataSourceImpl({required this.client});
+  AuthRemoteDataSourceImpl({
+    required ApiClient client,
+  }) : _client = client;
 
   @override
-  Future<UserModel> login(String email, String password) async {
-    final response = await client.post('/login', data: {
-      'email': email,
-      'password': password,
-    });
-    return UserModel.fromJson(response.data['user']);
+  Future<AuthResponse> login(String email, String password) async {
+    try {
+      final response =
+          await _client.post<Map<String, dynamic>>('/login', data: {
+        'email': email,
+        'password': password,
+      });
+      return AuthResponse.fromJson(response);
+    } on ApiException catch (e) {
+      throw ServerFailure(e.message);
+    }
   }
 
   @override
-  Future<UserModel> register(String email, String password, String fullName, UserRole role) async {
-    final response = await client.post('/auth/register', data: {
-      'email': email,
-      'password': password,
-      'fullName': fullName,
-      'role': role.name,
-    });
-    return UserModel.fromJson(response.data['user']);
-  }
+  Future<AuthResponse> register(
+      String email, String password, String fullName, UserRole role) async {
+    try {
+      final response =
+          await _client.post<Map<String, dynamic>>('/auth/register', data: {
+        'email': email,
+        'password': password,
+        'fullName': fullName,
+        'role': role.name,
+      });
 
-  @override
-  Future<void> logout() async {
-    await client.post('/auth/logout');
-  }
-
-  @override
-  Future<UserModel> getCurrentUser() async {
-    final response = await client.get('/auth/me');
-    return UserModel.fromJson(response.data['user']);
+      if (response['statusCode'] == 201) {
+        return AuthResponse.fromJson(response);
+      } else {
+        throw ServerFailure(response['message'] ?? 'Registration failed');
+      }
+    } on ApiException catch (e) {
+      throw ServerFailure(e.message);
+    }
   }
 
   @override
   Future<void> forgotPassword(String email) async {
-    await client.post('/auth/forgot-password', data: {
+    await _client.post('/auth/forgot-password', data: {
       'email': email,
     });
   }

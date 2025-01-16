@@ -1,116 +1,171 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/value_objects/user_role.dart';
+import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
+import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
+import '../../../../core/error/failures.dart';
+import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
-import './auth_dependencies.dart';
 
-// States
 class AuthState {
-  final UserEntity? user;
   final bool isLoading;
-  final String? error;
+  final UserEntity? user;
+  final Failure? failure;
+  final String? redirectPath;
 
-  AuthState({
-    this.user,
+  const AuthState({
     this.isLoading = false,
-    this.error,
+    this.user,
+    this.failure,
+    this.redirectPath,
   });
 
   AuthState copyWith({
-    UserEntity? user,
     bool? isLoading,
-    String? error,
+    UserEntity? user,
+    Failure? failure,
+    String? redirectPath,
   }) {
     return AuthState(
-      user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      user: user ?? this.user,
+      failure: failure,
+      redirectPath: redirectPath,
+    );
+  }
+
+  String? getRedirectPath() {
+    if (user == null) return null;
+    return user!.role == UserRole.student ? '/student' : '/teacher';
+  }
+}
+
+class AuthController extends StateNotifier<AuthState> {
+  final LoginUseCase _loginUseCase;
+  final LogoutUseCase _logoutUseCase;
+  final RegisterUseCase _registerUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
+
+  AuthController({
+    required LoginUseCase loginUseCase,
+    required LogoutUseCase logoutUseCase,
+    required RegisterUseCase registerUseCase,
+    required GetCurrentUserUseCase getCurrentUserUseCase,
+  })  : _loginUseCase = loginUseCase,
+        _logoutUseCase = logoutUseCase,
+        _registerUseCase = registerUseCase,
+        _getCurrentUserUseCase = getCurrentUserUseCase,
+        super(const AuthState()) {
+    getCurrentUser();
+  }
+
+  Future<void> getCurrentUser() async {
+    state = state.copyWith(isLoading: true, failure: null);
+    
+    final result = await _getCurrentUserUseCase(NoParams());
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        user: null,
+        failure: failure,
+        redirectPath: '/login',
+      ),
+      (user) => state = state.copyWith(
+        isLoading: false,
+        user: user,
+        failure: null,
+        redirectPath: user.role == UserRole.student ? '/student' : '/teacher',
+      ),
+    );
+  }
+
+  Future<void> login(String email, String password) async {
+    if (state.isLoading) return;
+    
+    state = state.copyWith(isLoading: true, failure: null, redirectPath: null);
+    
+    final result = await _loginUseCase(
+      LoginParams(email: email, password: password),
+    );
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        user: null,
+        failure: failure,
+        redirectPath: null,
+      ),
+      (authResult) => state = state.copyWith(
+        isLoading: false,
+        user: authResult.user,
+        failure: null,
+        redirectPath: authResult.user.role == UserRole.student ? '/student' : '/teacher',
+      ),
+    );
+  }
+
+  Future<void> register(
+    String email,
+    String password,
+    String fullName,
+    UserRole role,
+  ) async {
+    state = state.copyWith(isLoading: true, failure: null);
+    
+    final result = await _registerUseCase(
+      RegisterParams(
+        email: email,
+        password: password,
+        fullName: fullName,
+        role: role,
+      ),
+    );
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        failure: failure,
+        user: null,
+      ),
+      (authResult) => state = state.copyWith(
+        isLoading: false,
+        user: authResult.user,
+        failure: null,
+        redirectPath: authResult.user.role == UserRole.student ? '/student' : '/teacher',
+      ),
+    );
+  }
+
+  Future<void> logout() async {
+    if (state.isLoading) return;
+    
+    state = state.copyWith(isLoading: true, failure: null);
+    
+    final result = await _logoutUseCase(NoParams());
+    
+    result.fold(
+      (failure) => state = state.copyWith(
+        isLoading: false,
+        failure: failure,
+      ),
+      (_) => state = state.copyWith(
+        isLoading: false,
+        user: null,
+        failure: null,
+        redirectPath: '/login',
+      ),
     );
   }
 }
 
-// Provider
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final loginUseCase = ref.watch(loginUseCaseProvider);
-  final registerUseCase = ref.watch(registerUseCaseProvider);
-  return AuthNotifier(
-    loginUseCase,
-    registerUseCase,
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AuthState>((ref) {
+  return AuthController(
+    loginUseCase: ref.watch(loginUseCaseProvider),
+    logoutUseCase: ref.watch(logoutUseCaseProvider),
+    registerUseCase: ref.watch(registerUseCaseProvider),
+    getCurrentUserUseCase: ref.watch(getCurrentUserUseCaseProvider),
   );
 });
-
-// Notifier
-class AuthNotifier extends StateNotifier<AuthState> {
-  final LoginUseCase _loginUseCase;
-  final RegisterUseCase _registerUseCase;
-
-  AuthNotifier(this._loginUseCase, this._registerUseCase) : super(AuthState());
-
-  Future<void> login(String email, String password) async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-
-      final result = await _loginUseCase(
-        LoginParams(email: email, password: password),
-      );
-
-      result.fold(
-        (failure) => state = state.copyWith(
-          isLoading: false,
-          error: failure.message,
-        ),
-        (user) => state = state.copyWith(
-          isLoading: false,
-          user: user,
-          error: null,
-        ),
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred',
-      );
-    }
-  }
-
-  Future<void> register(String email, String password, String fullName, UserRole role) async {
-    try {
-      state = state.copyWith(isLoading: true, error: null);
-
-      final result = await _registerUseCase(
-        RegisterParams(
-          email: email,
-          password: password,
-          fullName: fullName,
-          role: role,
-        ),
-      );
-
-      result.fold(
-        (failure) => state = state.copyWith(
-          isLoading: false,
-          error: failure.message,
-        ),
-        (user) => state = state.copyWith(
-          isLoading: false,
-          user: user,
-          error: null,
-        ),
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred',
-      );
-    }
-  }
-
-  void clearError() {
-    state = state.copyWith(error: null);
-  }
-
-  void logout() {
-    state = AuthState();
-  }
-}

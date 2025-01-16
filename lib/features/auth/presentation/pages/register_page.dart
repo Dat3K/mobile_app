@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/constants/app_routes.dart';
 import '../../domain/value_objects/user_role.dart';
 import '../providers/auth_provider.dart';
 
@@ -13,17 +14,17 @@ class RegisterPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(authControllerProvider);
     
-    ref.listen(authProvider, (previous, next) {
-      if (next.error != null) {
+    ref.listen(authControllerProvider, (previous, next) {
+      if (next.failure != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!)),
+          SnackBar(content: Text(next.failure!.message)),
         );
       }
       
       if (next.user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
     });
 
@@ -80,7 +81,7 @@ class RegisterPage extends ConsumerWidget {
             else
               ElevatedButton(
                 onPressed: () {
-                  ref.read(authProvider.notifier).register(
+                  ref.read(authControllerProvider.notifier).register(
                         _emailController.text,
                         _passwordController.text,
                         _fullNameController.text,

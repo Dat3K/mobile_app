@@ -1,41 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:get_it/get_it.dart';
-import 'core/api/api_client.dart';
-import 'core/router/router.dart';
+import 'package:mobile_app/app.dart';
+import 'package:mobile_app/features/auth/data/models/session_model.dart';
+import 'package:mobile_app/features/auth/data/models/user_model.dart';
+import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
+import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Hive
   await Hive.initFlutter();
+  
+  // Register Adapters
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(UserModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(UserRoleModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(2)) {
+    Hive.registerAdapter(SessionModelAdapter());
+  }
 
-  // Initialize GetIt
-  final getIt = GetIt.instance;
-  getIt.registerSingleton<ApiClient>(ApiClient());
+  
+  // Open Hive Boxes
+  final userBox = await Hive.openBox('user');
+  final sessionBox = await Hive.openBox('session');
 
   runApp(
-    const ProviderScope(
-      child: MyApp(),
+    ProviderScope(
+      overrides: [
+        userBoxProvider.overrideWithValue(userBox),
+        sessionBoxProvider.overrideWithValue(sessionBox),
+      ],
+      child: const MyApp(),
     ),
   );
-}
-
-class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
-
-    return MaterialApp.router(
-      title: 'Your App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
-      routerConfig: router,
-    );
-  }
 }

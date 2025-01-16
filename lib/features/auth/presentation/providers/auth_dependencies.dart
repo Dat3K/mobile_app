@@ -1,39 +1,51 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/api/api_client.dart';
-import '../../data/datasources/auth_remote_data_source.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../shared/providers/api_providers.dart';
+import '../../../../shared/providers/network_providers.dart';
 import '../../data/datasources/auth_local_data_source.dart';
+import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/get_current_user_usecase.dart';
 
-// API Client Provider
-final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient();
+// Hive Box Provider
+final userBoxProvider = Provider<Box>((ref) {
+  throw UnimplementedError('Initialize in main.dart');
 });
 
-// Data Source Providers
+final sessionBoxProvider = Provider<Box>((ref) {
+  throw UnimplementedError('Initialize in main.dart');
+});
+
+// Data Sources Providers
+final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
+  final userBox = ref.watch(userBoxProvider);
+  final sessionBox = ref.watch(sessionBoxProvider);
+  return AuthLocalDataSourceImpl(userBox, sessionBox);
+});
+
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   return AuthRemoteDataSourceImpl(client: apiClient);
-});
-
-final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
-  return AuthLocalDataSourceImpl();
 });
 
 // Repository Provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
   final localDataSource = ref.watch(authLocalDataSourceProvider);
+  final networkInfo = ref.watch(networkInfoProvider);
+  
   return AuthRepositoryImpl(
     remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
+    networkInfo: networkInfo,
   );
 });
 
-// UseCase Providers
+// Use Cases Providers
 final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
   final repository = ref.watch(authRepositoryProvider);
   return LoginUseCase(repository);
@@ -47,4 +59,9 @@ final registerUseCaseProvider = Provider<RegisterUseCase>((ref) {
 final logoutUseCaseProvider = Provider<LogoutUseCase>((ref) {
   final repository = ref.watch(authRepositoryProvider);
   return LogoutUseCase(repository);
+});
+
+final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
+  final repository = ref.watch(authRepositoryProvider);
+  return GetCurrentUserUseCase(repository);
 });

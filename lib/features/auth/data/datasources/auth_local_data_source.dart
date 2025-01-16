@@ -1,35 +1,51 @@
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user_model.dart';
+import '../models/session_model.dart';
 
 abstract class AuthLocalDataSource {
-  Future<void> cacheUser(UserModel user);
-  Future<UserModel?> getCachedUser();
+  Future<void> saveUser(UserModel user);
+  Future<void> saveSession(SessionModel session);
+  Future<UserModel?> getUser();
+  Future<SessionModel?> getSession();
   Future<void> clearUser();
+  Future<void> clearSession();
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
-  final String _userBoxName = 'userBox';
-  final String _userKey = 'currentUser';
+  final Box _userBox;
+  final Box _sessionBox;
+
+  AuthLocalDataSourceImpl(this._userBox, this._sessionBox);
 
   @override
-  Future<void> cacheUser(UserModel user) async {
-    final box = await Hive.openBox(_userBoxName);
-    await box.put(_userKey, user.toJson());
+  Future<void> saveUser(UserModel user) async {
+    await _userBox.put('user', user);
   }
 
   @override
-  Future<UserModel?> getCachedUser() async {
-    final box = await Hive.openBox(_userBoxName);
-    final userData = box.get(_userKey);
-    if (userData != null) {
-      return UserModel.fromJson(Map<String, dynamic>.from(userData));
-    }
-    return null;
+  Future<void> saveSession(SessionModel session) async {
+    await _sessionBox.put('session', session);
+  }
+
+  @override
+  Future<UserModel?> getUser() async {
+    final user = _userBox.get('user');
+    return user as UserModel?;
+  }
+
+  @override
+  Future<SessionModel?> getSession() async {
+    final session = _sessionBox.get('session');
+    return session as SessionModel?;
   }
 
   @override
   Future<void> clearUser() async {
-    final box = await Hive.openBox(_userBoxName);
-    await box.delete(_userKey);
+    await _userBox.delete('user');
+  }
+
+  @override
+  Future<void> clearSession() async {
+    await _sessionBox.delete('session');
   }
 }

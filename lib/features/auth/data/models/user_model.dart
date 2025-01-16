@@ -2,40 +2,36 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/value_objects/user_role.dart';
-import 'user_role_model.dart';
 
-part 'user_model.freezed.dart';
 part 'user_model.g.dart';
+part 'user_model.freezed.dart';
 
-@HiveType(typeId: 0)
 @freezed
-class UserModel with _$UserModel implements UserEntity {
-  const UserModel._();  // Constructor needed for custom getters
-
+@HiveType(typeId: 0)
+class UserModel with _$UserModel {
   const factory UserModel({
     @HiveField(0) required String id,
     @HiveField(1) required String email,
-    @HiveField(2) required UserRoleModel roleModel,
-    @HiveField(3) bool? isActive,
-    @HiveField(4) String? avatarPath,
-    @HiveField(5) DateTime? lastLogin,
+    @HiveField(2) required String role,
+    @HiveField(3) required bool isActive,
+    @HiveField(4) required String avatarPath,
+    @HiveField(5) required DateTime lastLogin,
   }) = _UserModel;
 
-  // Implement UserEntity interface
-  @override
-  UserRole get role => roleModel.toDomain();
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 
-  // Create UserModel from domain entity
-  factory UserModel.fromDomain(UserEntity entity) {
-    return UserModel(
-      id: entity.id,
-      email: entity.email,
-      roleModel: UserRoleModel.fromDomain(entity.role),
-      isActive: entity.isActive,
-      avatarPath: entity.avatarPath,
-      lastLogin: entity.lastLogin,
-    );
-  }
+  const UserModel._();
 
-  factory UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
+  UserEntity toDomain() => UserEntity(
+        id: id,
+        email: email,
+        role: UserRole.values.firstWhere(
+          (role) => role.name.toLowerCase() == this.role.toLowerCase(),
+          orElse: () => UserRole.student,
+        ),
+        isActive: isActive,
+        avatarPath: avatarPath,
+        lastLogin: lastLogin,
+      );
 }

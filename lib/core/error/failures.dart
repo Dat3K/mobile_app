@@ -19,3 +19,11 @@ class NetworkFailure extends Failure {
 class AuthenticationFailure extends Failure {
   const AuthenticationFailure(super.message);
 }
+
+class UnexpectedFailure extends Failure {
+  const UnexpectedFailure(super.message);
+}
+
+class AuthFailure extends Failure {
+  const AuthFailure(super.message);
+}

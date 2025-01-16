@@ -4,7 +4,7 @@ import '../../domain/value_objects/user_role.dart';
 
 part 'user_role_model.g.dart';
 
-@HiveType(typeId: 3)
+@HiveType(typeId: 1)
 enum UserRoleModel {
   @JsonValue('faculty')
   @HiveField(0)

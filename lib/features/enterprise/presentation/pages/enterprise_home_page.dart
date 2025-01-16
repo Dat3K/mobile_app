@@ -7,7 +7,7 @@ class EnterpriseHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
+    final authState = ref.watch(authControllerProvider);
     final user = authState.user;
 
     return Scaffold(
@@ -16,7 +16,7 @@ class EnterpriseHomePage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authProvider.notifier).logout(),
+            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
           ),
         ],
       ),

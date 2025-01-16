@@ -1,74 +1,100 @@
 import 'package:dartz/dartz.dart';
-import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import '../../../../core/error/failures.dart';
-import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/entities/user_entity.dart';
+import '../../domain/value_objects/user_role.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../datasources/auth_local_data_source.dart';
+import '../../../../core/network/network_info.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDataSource remoteDataSource;
-  final AuthLocalDataSource localDataSource;
+  final AuthRemoteDataSource _remoteDataSource;
+  final AuthLocalDataSource _localDataSource;
+  final NetworkInfo _networkInfo;
 
   AuthRepositoryImpl({
-    required this.remoteDataSource,
-    required this.localDataSource,
-  });
+    required AuthRemoteDataSource remoteDataSource,
+    required AuthLocalDataSource localDataSource,
+    required NetworkInfo networkInfo,
+  })  : _remoteDataSource = remoteDataSource,
+        _localDataSource = localDataSource,
+        _networkInfo = networkInfo;
 
   @override
-  Future<Either<Failure, UserEntity>> login(String email, String password) async {
+  Future<Either<Failure, AuthResult>> login(
+      String email, String password) async {
     try {
-      final user = await remoteDataSource.login(email, password);
-      await localDataSource.cacheUser(user); // Cache user after successful login
-      return Right(user);
-    } catch (e) {
-      return Left(AuthenticationFailure(e.toString()));
+      final response = await _remoteDataSource.login(email, password);
+
+      // Save session to local storage
+      await _localDataSource.saveSession(response.session);
+      await _localDataSource.saveUser(response.user);
+
+      return Right(AuthResult(
+        user: response.user.toDomain(),
+        session: response.session.toDomain(),
+      ));
+    } on Failure catch (failure) {
+      return Left(failure);
     }
   }
 
   @override
-  Future<Either<Failure, UserEntity>> register(String email, String password, String fullName, UserRole role) async {
-    try {
-      final user = await remoteDataSource.register(email, password, fullName, role);
-      await localDataSource.cacheUser(user); // Cache user after successful registration
-      return Right(user);
-    } catch (e) {
-      return Left(AuthenticationFailure(e.toString()));
+  Future<Either<Failure, AuthResult>> register(
+      String email, String password, String fullName, UserRole role) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final response =
+            await _remoteDataSource.register(email, password, fullName, role);
+
+        // Save session to local storage
+        await _localDataSource.saveSession(response.session);
+        await _localDataSource.saveUser(response.user);
+
+        return Right(AuthResult(
+          user: response.user.toDomain(),
+          session: response.session.toDomain(),
+        ));
+      } on Failure catch (failure) {
+        return Left(failure);
+      }
+    } else {
+      return Left(NetworkFailure(
+        'No internet connection',
+      ));
     }
   }
 
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await remoteDataSource.logout();
-      await localDataSource.clearUser(); // Clear cached user on logout
+      await _localDataSource.clearSession();
+      await _localDataSource.clearUser();
       return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+    } on Failure catch (failure) {
+      return Left(failure);
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> getCurrentUser() async {
     try {
-      // First try to get user from cache
-      final cachedUser = await localDataSource.getCachedUser();
+      final cachedUser = await _localDataSource.getUser();
       if (cachedUser != null) {
-        return Right(cachedUser);
+        return Right(cachedUser.toDomain());
       }
-      // If no cached user, fetch from remote
-      final user = await remoteDataSource.getCurrentUser();
-      await localDataSource.cacheUser(user);
-      return Right(user);
+
+      // Nếu không có cached user, trả về AuthFailure
+      return Left(AuthFailure('No authenticated user found'));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(AuthFailure('Failed to get current user'));
     }
   }
 
   @override
   Future<Either<Failure, void>> forgotPassword(String email) async {
     try {
-      await remoteDataSource.forgotPassword(email);
+      await _remoteDataSource.forgotPassword(email);
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

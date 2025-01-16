@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:mobile_app/features/auth/domain/entities/user_entity.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../value_objects/user_role.dart';
@@ -19,13 +18,13 @@ class RegisterParams {
   });
 }
 
-class RegisterUseCase implements UseCase<UserEntity, RegisterParams> {
+class RegisterUseCase implements UseCase<AuthResult, RegisterParams> {
   final AuthRepository repository;
 
   RegisterUseCase(this.repository);
 
   @override
-  Future<Either<Failure, UserEntity>> call(RegisterParams params) async {
+  Future<Either<Failure, AuthResult>> call(RegisterParams params) async {
     return await repository.register(
       params.email,
       params.password,
