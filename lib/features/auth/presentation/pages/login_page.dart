@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import '../../../../core/constants/app_routes.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -53,12 +50,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         );
       }
-
-      // // Handle navigation
-      // if (next.redirectPath != null && next.redirectPath != previous?.redirectPath) {
-      //   print(next.redirectPath);
-      //   context.go(next.redirectPath!);
-      // }
     });
 
     return Scaffold(

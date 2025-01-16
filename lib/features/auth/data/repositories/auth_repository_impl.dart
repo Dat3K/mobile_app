@@ -84,7 +84,6 @@ class AuthRepositoryImpl implements AuthRepository {
         return Right(cachedUser.toDomain());
       }
 
-      // Nếu không có cached user, trả về AuthFailure
       return Left(AuthFailure('No authenticated user found'));
     } catch (e) {
       return Left(AuthFailure('Failed to get current user'));

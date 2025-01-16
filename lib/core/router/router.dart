@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_app/features/faculty/presentation/pages/faculty_home_page.dart';
+import 'package:mobile_app/core/constants/app_routes.dart';
+import 'package:mobile_app/features/enterprise/presentation/pages/enterprise_home_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/student/presentation/pages/student_home_page.dart';
@@ -12,7 +13,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     debugLogDiagnostics: kDebugMode,
-    initialLocation: '/login',
+    initialLocation: AppRoutes.initial,
     redirect: (context, state) {
       // Nếu đang loading, không redirect
       if (authState.isLoading) return null;
@@ -27,19 +28,19 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
-        path: '/login',
+        path: AppRoutes.login,
         name: 'login',
         builder: (context, state) => const LoginPage(),
       ),
       GoRoute(
-        path: '/student',
+        path: AppRoutes.student,
         name: 'student',
         builder: (context, state) => const StudentHomePage(),
       ),
       GoRoute(
-        path: '/teacher',
-        name: 'teacher',
-        builder: (context, state) => const FacultyHomePage(),
+        path: AppRoutes.enterprise,
+        name: 'enterprise',
+        builder: (context, state) => const EnterpriseHomePage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
