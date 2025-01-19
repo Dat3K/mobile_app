@@ -3,7 +3,6 @@ class AppRoutes {
   AppRoutes._(); // Private constructor to prevent instantiation
 
   // Auth Routes
-  static const String initial = '/';
   static const String login = '/login';
   static const String register = '/register';
 

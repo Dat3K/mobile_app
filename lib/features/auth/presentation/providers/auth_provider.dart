@@ -13,32 +13,23 @@ class AuthState {
   final bool isLoading;
   final UserEntity? user;
   final Failure? failure;
-  final String? redirectPath;
 
   const AuthState({
     this.isLoading = false,
     this.user,
     this.failure,
-    this.redirectPath,
   });
 
   AuthState copyWith({
     bool? isLoading,
     UserEntity? user,
     Failure? failure,
-    String? redirectPath,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       user: user ?? this.user,
       failure: failure,
-      redirectPath: redirectPath,
     );
-  }
-
-  String? getRedirectPath() {
-    if (user == null) return null;
-    return user!.role == UserRole.student ? '/student' : '/teacher';
   }
 }
 
@@ -70,13 +61,11 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         user: null,
         failure: failure,
-        redirectPath: '/login',
       ),
       (user) => state = state.copyWith(
         isLoading: false,
         user: user,
         failure: null,
-        redirectPath: user.role == UserRole.student ? '/student' : '/teacher',
       ),
     );
   }
@@ -84,7 +73,7 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> login(String email, String password) async {
     if (state.isLoading) return;
     
-    state = state.copyWith(isLoading: true, failure: null, redirectPath: null);
+    state = state.copyWith(isLoading: true, failure: null);
     
     final result = await _loginUseCase(
       LoginParams(email: email, password: password),
@@ -95,13 +84,11 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         user: null,
         failure: failure,
-        redirectPath: null,
       ),
       (authResult) => state = state.copyWith(
         isLoading: false,
         user: authResult.user,
         failure: null,
-        redirectPath: authResult.user.role == UserRole.student ? '/student' : '/teacher',
       ),
     );
   }
@@ -133,7 +120,6 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         user: authResult.user,
         failure: null,
-        redirectPath: authResult.user.role == UserRole.student ? '/student' : '/teacher',
       ),
     );
   }
@@ -154,7 +140,6 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         user: null,
         failure: null,
-        redirectPath: '/login',
       ),
     );
   }
