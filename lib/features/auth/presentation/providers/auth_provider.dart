@@ -27,7 +27,7 @@ class AuthState {
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
-      user: user ?? this.user,
+      user: user,
       failure: failure,
     );
   }
@@ -135,7 +135,6 @@ class AuthController extends StateNotifier<AuthState> {
       (failure) => state = state.copyWith(
         isLoading: false,
         failure: failure,
-        user: null,
       ),
       (_) => state = state.copyWith(
         isLoading: false,

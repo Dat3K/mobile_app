@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class StudentHomePage extends ConsumerWidget {
@@ -20,26 +21,30 @@ class StudentHomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome, ${user?.email}',
-              style: Theme.of(context).textTheme.headlineSmall,
+      body: authState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome, ${user?.email}',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 24),
+                  _StudentDashboardGrid(authState),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
-            const _StudentDashboardGrid(),
-          ],
-        ),
-      ),
     );
   }
 }
 
 class _StudentDashboardGrid extends StatelessWidget {
-  const _StudentDashboardGrid();
+  const _StudentDashboardGrid(this.authState);
+
+  final AuthState authState;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +59,9 @@ class _StudentDashboardGrid extends StatelessWidget {
           icon: Icons.school,
           title: 'My Courses',
           onTap: () {
-            // TODO: Navigate to courses
+            authState.failure != null
+                ? print(authState.failure?.message)
+                : print(authState.user?.email);
           },
         ),
         _DashboardCard(
