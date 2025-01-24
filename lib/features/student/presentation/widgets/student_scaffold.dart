@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/constants/app_routes.dart';
-import 'package:mobile_app/shared/theme/app_colors.dart';
 
 class StudentScaffold extends StatelessWidget {
   final Widget child;
