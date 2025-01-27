@@ -1,14 +1,12 @@
 import 'package:dartz/dartz.dart';
 import 'package:mobile_app/features/auth/domain/entities/user_entity.dart';
+import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import '../../../../core/error/failures.dart';
-import '../entities/session.dart';
-import '../value_objects/user_role.dart';
 
 class AuthResult {
   final UserEntity user;
-  final Session session;
 
-  AuthResult({required this.user, required this.session});
+  AuthResult({required this.user});
 }
 
 abstract class AuthRepository {

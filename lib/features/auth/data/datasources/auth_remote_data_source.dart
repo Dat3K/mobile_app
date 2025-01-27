@@ -1,19 +1,16 @@
 import 'package:mobile_app/core/error/failures.dart';
 import '../../../../core/api/api_client.dart';
 import '../models/user_model.dart';
-import '../models/session_model.dart';
 import '../../domain/value_objects/user_role.dart';
 
 class AuthResponse {
   final UserModel user;
-  final SessionModel session;
 
-  AuthResponse({required this.user, required this.session});
+  AuthResponse({required this.user});
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
       user: UserModel.fromJson(json['user']),
-      session: SessionModel.fromJson(json['session']),
     );
   }
 }

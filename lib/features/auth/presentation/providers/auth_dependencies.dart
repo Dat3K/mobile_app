@@ -16,15 +16,10 @@ final userBoxProvider = Provider<Box>((ref) {
   throw UnimplementedError('Initialize in main.dart');
 });
 
-final sessionBoxProvider = Provider<Box>((ref) {
-  throw UnimplementedError('Initialize in main.dart');
-});
-
 // Data Sources Providers
 final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
   final userBox = ref.watch(userBoxProvider);
-  final sessionBox = ref.watch(sessionBoxProvider);
-  return AuthLocalDataSourceImpl(userBox, sessionBox);
+  return AuthLocalDataSourceImpl(userBox);
 });
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {

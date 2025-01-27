@@ -27,12 +27,10 @@ class AuthRepositoryImpl implements AuthRepository {
       final response = await _remoteDataSource.login(email, password);
 
       // Save session to local storage
-      await _localDataSource.saveSession(response.session);
       await _localDataSource.saveUser(response.user);
 
       return Right(AuthResult(
         user: response.user.toDomain(),
-        session: response.session.toDomain(),
       ));
     } on Failure catch (failure) {
       return Left(failure);
@@ -48,12 +46,10 @@ class AuthRepositoryImpl implements AuthRepository {
             await _remoteDataSource.register(email, password, fullName, role);
 
         // Save session to local storage
-        await _localDataSource.saveSession(response.session);
         await _localDataSource.saveUser(response.user);
 
         return Right(AuthResult(
           user: response.user.toDomain(),
-          session: response.session.toDomain(),
         ));
       } on Failure catch (failure) {
         return Left(failure);
@@ -68,7 +64,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await _localDataSource.clearSession();
       await _localDataSource.clearUser();
       return const Right(null);
     } on Failure catch (failure) {
