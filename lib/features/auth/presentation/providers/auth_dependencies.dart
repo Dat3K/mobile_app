@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../../../shared/providers/api_providers.dart';
-import '../../../../shared/providers/network_providers.dart';
+import '../../../../core/providers/api_providers.dart';
+import '../../../../core/providers/network_providers.dart';
 import '../../data/datasources/auth_local_data_source.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';

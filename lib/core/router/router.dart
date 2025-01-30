@@ -8,7 +8,7 @@ import 'package:mobile_app/features/enterprise/presentation/pages/enterprise_hom
 import 'package:mobile_app/features/enterprise/presentation/widgets/enterprise_scaffold.dart';
 import 'package:mobile_app/features/student/presentation/pages/student_home_page.dart';
 import 'package:mobile_app/features/student/presentation/widgets/student_scaffold.dart';
-import 'package:mobile_app/shared/widgets/error_page.dart';
+import 'package:mobile_app/core/widgets/error_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import 'router_state.dart';
