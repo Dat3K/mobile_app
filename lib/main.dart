@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:mobile_app/app.dart';
+import 'package:mobile_app/core/router/router.dart';
+import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/auth/data/models/user_model.dart';
 import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 void main() async {
   // Ensure proper binding initialization
@@ -41,5 +43,35 @@ void main() async {
   } catch (e, stackTrace) {
     debugPrint('Error during initialization: $e\n$stackTrace');
     rethrow;
+  }
+}
+
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
+    return ShadApp.materialRouter(
+      title: 'Mobile-app',
+      themeMode: ThemeMode.system,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      debugShowCheckedModeBanner: false,
+      routerDelegate: router.routerDelegate,
+      routeInformationParser: router.routeInformationParser,
+      routeInformationProvider: router.routeInformationProvider,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('vi', ''),
+      ],
+    );
   }
 }
