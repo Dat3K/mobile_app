@@ -62,38 +62,54 @@ class RouterStateNotifier extends StateNotifier<RouterState> {
   String? redirect(GoRouterState goState) {
     final authState = _ref.read(authControllerProvider);
     
-    // Don't redirect while loading
+    // Cache current location để tránh tính toán nhiều lần
+    final location = RouteLocation.fromPath(goState.matchedLocation);
+    
+    // Kiểm tra loading state
     if (authState.isLoading) return null;
 
-    final location = RouteLocation.fromPath(goState.matchedLocation);
     final isLoggedIn = authState.user != null;
+    final currentPath = goState.matchedLocation;
     
-    // Always redirect to login if not logged in (including after logout)
+    // Tránh redirect không cần thiết nếu đang ở đúng route
+    if (state.redirectPath == currentPath) return null;
+
+    // Case 1: Chưa đăng nhập
     if (!isLoggedIn) {
-      // Only redirect if not already on login page
       if (location != RouteLocation.login) {
-        state = state.copyWith(redirectPath: AppRoutes.login);
+        _updateStateIfMounted(AppRoutes.login);
         return AppRoutes.login;
       }
       return null;
     }
 
-    // Case 2: Logged in, on login page
+    // Case 2: Đã đăng nhập nhưng đang ở trang login
     if (location == RouteLocation.login) {
       final homeRoute = _getHomeRouteByRole(authState.user!.role);
-      state = state.copyWith(redirectPath: homeRoute);
+      _updateStateIfMounted(homeRoute);
       return homeRoute;
     }
 
-    // Case 3: Logged in, but not authorized for current route
+    // Case 3: Kiểm tra quyền truy cập route
     if (!location.isAuthorizedFor(authState.user!.role)) {
       final homeRoute = _getHomeRouteByRole(authState.user!.role);
-      state = state.copyWith(redirectPath: homeRoute);
+      _updateStateIfMounted(homeRoute);
       return homeRoute;
     }
 
-    state = state.copyWith(redirectPath: null);
+    // Reset redirect path nếu không có redirect nào được thực hiện
+    if (state.redirectPath != null) {
+      _updateStateIfMounted(null);
+    }
     return null;
+  }
+
+  // Helper method để cập nhật state an toàn
+  void _updateStateIfMounted(String? path) {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      state = state.copyWith(redirectPath: path);
+    });
   }
 
   String _getHomeRouteByRole(UserRole role) {

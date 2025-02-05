@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -39,16 +40,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(authControllerProvider, (previous, next) {
       // Handle errors
       if (next.failure != null) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Authentication Error'),
-            description: Text(next.failure!.message),
-            action: ShadButton.destructive(
-              child: const Text('Try again'),
-              onPressed: () => ShadToaster.of(context).hide(),
+          ShadToaster.of(context).show(
+            ShadToast.destructive(
+              title: Text('auth.auth_error'.tr()),
+              description: Text(next.failure!.message),
+              action: ShadButton.destructive(
+                child: Text('auth.try_again'.tr()),
+                onPressed: () => ShadToaster.of(context).hide(),
+              ),
             ),
-          ),
-        );
+          );
       }
     });
 
@@ -59,9 +60,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             constraints: const BoxConstraints(maxWidth: 400),
             padding: const EdgeInsets.all(24),
             child: ShadCard(
-              title: const Text('Welcome back'),
-              description:
-                  const Text('Enter your credentials to access your account'),
+              title: Text('auth.welcome_back'.tr()),
+              description: Text('auth.login_description'.tr()),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -71,21 +71,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(height: 24),
 
                     // Email Field
-                    const Text('Email'),
+                    Text('auth.email'.tr()),
                     const SizedBox(height: 8),
                     ShadInputFormField(
                       controller: _emailController,
-                      placeholder: const Text('Enter your email'),
+                      placeholder: Text('auth.enter_email'.tr()),
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: const ShadDecoration(),
                       validator: (value) {
                         if (value.isEmpty) {
-                          return 'Please enter your email';
+                          return 'auth.validation.email_required'.tr();
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
                             .hasMatch(value)) {
-                          return 'Please enter a valid email';
+                          return 'auth.validation.email_invalid'.tr();
                         }
                         return null;
                       },
@@ -93,19 +93,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(height: 16),
 
                     // Password Field
-                    const Text('Password'),
+                    Text('auth.password'.tr()),
                     const SizedBox(height: 8),
                     ShadInputFormField(
                       controller: _passwordController,
-                      placeholder: const Text('Enter your password'),
+                      placeholder: Text('auth.enter_password'.tr()),
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _onLogin(),
                       validator: (value) {
                         if (value.isEmpty) {
-                          return 'Please enter your password';
+                          return 'auth.validation.password_required'.tr();
                         }
                         if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
+                          return 'auth.validation.password_length'.tr();
                         }
                         return null;
                       },
@@ -118,11 +118,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ShadCheckbox(
                           value: false,
                           onChanged: (value) {},
-                          label: const Text('Remember me'),
+                          label: Text('auth.remember_me'.tr()),
                         ),
                         const Spacer(),
                         ShadButton.ghost(
-                          child: const Text('Forgot password?'),
+                          child: Text('auth.forgot_password'.tr()),
                           onPressed: () {},
                         ),
                       ],
@@ -133,12 +133,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     authState.isLoading
                         ? ShadButton(
                             onPressed: null,
-                            icon: const CircularProgressIndicator(strokeWidth: 2),
-                            child: const Text('Please wait'),
+                            icon:
+                                const CircularProgressIndicator(strokeWidth: 2),
+                            child: Text('common.please_wait'.tr()),
                           )
                         : ShadButton(
                             onPressed: _onLogin,
-                            child: const Text('Login'),
+                            child: Text('auth.login'.tr()),
                           ),
                     const SizedBox(height: 24),
 
@@ -151,14 +152,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
 
                     // Divider
-                    const Row(
+                    Row(
                       children: [
-                        Expanded(child: Divider()),
+                        const Expanded(child: Divider()),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('OR'),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('common.or'.tr()),
                         ),
-                        Expanded(child: Divider()),
+                        const Expanded(child: Divider()),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -189,9 +190,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Don't have an account?"),
+                        Text('auth.dont_have_account'.tr()),
                         ShadButton.link(
-                          child: const Text('Sign up'),
+                          child: Text('auth.sign_up'.tr()),
                           onPressed: () {
                             // Navigate to register page
                           },

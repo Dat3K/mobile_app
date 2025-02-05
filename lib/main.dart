@@ -7,10 +7,14 @@ import 'package:mobile_app/features/auth/data/models/user_model.dart';
 import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() async {
   // Ensure proper binding initialization
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize EasyLocalization
+  await EasyLocalization.ensureInitialized();
 
   try {
     // Initialize Hive
@@ -33,11 +37,19 @@ void main() async {
     };
 
     runApp(
-      ProviderScope(
-        overrides: [
-          userBoxProvider.overrideWithValue(userBox),
+      EasyLocalization(
+        supportedLocales: const [
+          Locale('vi', 'VN'),
+          Locale('en', 'US'),
         ],
-        child: const MyApp(),
+        path: 'assets/translations',
+        fallbackLocale: const Locale('vi', 'VN'),
+        child: ProviderScope(
+          overrides: [
+            userBoxProvider.overrideWithValue(userBox),
+          ],
+          child: const MyApp(),
+        ),
       ),
     );
   } catch (e, stackTrace) {
@@ -63,6 +75,9 @@ class MyApp extends ConsumerWidget {
       routerDelegate: router.routerDelegate,
       routeInformationParser: router.routeInformationParser,
       routeInformationProvider: router.routeInformationProvider,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
     );
   }
 }

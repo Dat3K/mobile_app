@@ -25,12 +25,12 @@ final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
 
 class AppTheme {
   static ShadThemeData darkTheme = ShadThemeData(
-    colorScheme: ShadColorScheme.fromName('gray'),
+    colorScheme: ShadYellowColorScheme.dark(),
     brightness: Brightness.dark,
   );
   
   static ShadThemeData lightTheme = ShadThemeData(
-    colorScheme: ShadColorScheme.fromName('light'),
+    colorScheme: ShadYellowColorScheme.light(),
     brightness: Brightness.light,
   );
 

@@ -1,0 +1,37 @@
+{
+  "common": {
+    "app_name": "Mobile App",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "or": "OR",
+    "please_wait": "Please wait..."
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "welcome_back": "Welcome back",
+    "login_description": "Enter your credentials to access your account",
+    "enter_email": "Enter your email",
+    "enter_password": "Enter your password",
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot password?",
+    "dont_have_account": "Don't have an account?",
+    "sign_up": "Sign up",
+    "auth_error": "Authentication Error",
+    "try_again": "Try again",
+    "validation": {
+      "email_required": "Please enter your email",
+      "email_invalid": "Please enter a valid email",
+      "password_required": "Please enter your password",
+      "password_length": "Password must be at least 6 characters"
+    }
+  }
+}
