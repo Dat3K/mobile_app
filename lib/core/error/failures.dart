@@ -27,3 +27,31 @@ class UnexpectedFailure extends Failure {
 class AuthFailure extends Failure {
   const AuthFailure(super.message);
 }
+
+class ForbiddenFailure extends Failure {
+  const ForbiddenFailure(super.message);
+}
+
+class NotFoundFailure extends Failure {
+  const NotFoundFailure(super.message);
+} 
+
+class UnauthorizedFailure extends Failure {
+  const UnauthorizedFailure(super.message);
+}
+
+class CancelFailure extends Failure {
+  const CancelFailure(super.message);
+}
+
+class BadResponseFailure extends Failure {
+  const BadResponseFailure(super.message);
+}
+
+class TimeoutFailure extends Failure {
+  const TimeoutFailure(super.message);
+}
+
+class BadCertificateFailure extends Failure {
+  const BadCertificateFailure(super.message);
+}

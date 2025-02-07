@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../../../core/providers/api_providers.dart';
-import '../../../../core/providers/network_providers.dart';
+import 'package:mobile_app/core/network/dio_client.dart';
 import '../../data/datasources/auth_local_data_source.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -23,7 +22,7 @@ final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
 });
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
+  final apiClient = ref.watch(dioClientProvider);
   return AuthRemoteDataSourceImpl(client: apiClient);
 });
 
@@ -31,12 +30,10 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
   final localDataSource = ref.watch(authLocalDataSourceProvider);
-  final networkInfo = ref.watch(networkInfoProvider);
   
   return AuthRepositoryImpl(
     remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
-    networkInfo: networkInfo,
   );
 });
 

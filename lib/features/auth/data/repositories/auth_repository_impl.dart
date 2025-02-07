@@ -5,20 +5,16 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/value_objects/user_role.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../datasources/auth_local_data_source.dart';
-import '../../../../core/network/network_info.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
-  final NetworkInfo _networkInfo;
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
-    required NetworkInfo networkInfo,
   })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource,
-        _networkInfo = networkInfo;
+        _localDataSource = localDataSource;
 
   @override
   Future<Either<Failure, AuthResult>> login(
@@ -40,7 +36,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, AuthResult>> register(
       String email, String password, String fullName, UserRole role) async {
-    if (await _networkInfo.isConnected) {
       try {
         final response =
             await _remoteDataSource.register(email, password, fullName, role);
@@ -54,11 +49,6 @@ class AuthRepositoryImpl implements AuthRepository {
       } on Failure catch (failure) {
         return Left(failure);
       }
-    } else {
-      return Left(NetworkFailure(
-        'No internet connection',
-      ));
-    }
   }
 
   @override

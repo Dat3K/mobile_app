@@ -17,6 +17,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    assert(() {
+      _emailController.text = '5a00000g@student.tdtu.edu.vn';
+      _passwordController.text = 'AppController_YRXoxijGiTq8rbKMbqM21SQRwaA1!';
+      return true;
+    }());
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -121,10 +131,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           label: Text('auth.remember_me'.tr()),
                         ),
                         const Spacer(),
-                        ShadButton.ghost(
-                          child: Text('auth.forgot_password'.tr()),
-                          onPressed: () {},
-                        ),
+                        // ShadButton.ghost(
+                        //   child: Text('auth.forgot_password'.tr()),
+                        //   onPressed: () {},
+                        // ),
                       ],
                     ),
                     const SizedBox(height: 24),

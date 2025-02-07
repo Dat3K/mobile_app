@@ -1,123 +1,154 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import '../constants/app_constants.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/constants/app_constants.dart';
+import 'package:mobile_app/core/error/failures.dart';
+import 'package:mobile_app/core/services/logger_service.dart';
+import '../constants/csrf_constants.dart';
+import '../providers/csrf_provider.dart';
 import 'http_client_interface.dart';
-import 'http_error.dart';
-import 'csrf_interceptor.dart';
+
+/// Dio instance provider
+final dioProvider = Provider<Dio>((ref) => Dio());
+
+/// Dio Client provider
+final dioClientProvider = Provider<DioClient>((ref) {
+  final dio = ref.watch(dioProvider);
+  final logger = ref.watch(loggerServiceProvider);
+  return DioClient(dio, logger: logger, ref: ref);
+});
 
 class DioClient implements IHttpClient {
-  late final Dio _dio;
-  late final CsrfInterceptor _csrfInterceptor;
-  
-  DioClient() {
-    _dio = Dio(_baseOptions);
-    _csrfInterceptor = CsrfInterceptor(dio: _dio);
-    _addInterceptors();
-  }
+  final Dio dio;
+  final LoggerService _logger;
+  final Ref _ref;
 
-  /// Base options cho Dio client
-  BaseOptions get _baseOptions => BaseOptions(
-        baseUrl: AppConstants.apiBaseUrl,
-        receiveDataWhenStatusError: true,
-        contentType: 'application/json',
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        validateStatus: (status) => status != null && status < 500,
-      );
-
-  /// Thêm interceptors cho logging và authentication
-  void _addInterceptors() {
-    // CSRF interceptor
-    _dio.interceptors.add(_csrfInterceptor);
-
-    // Auth interceptor
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // TODO: Implement auth token logic
-        return handler.next(options);
-      },
-      onError: (error, handler) async {
-        // TODO: Implement refresh token logic
-        if (error.response?.statusCode == 401) {
-          // Implement token refresh logic here
-        }
-        return handler.next(error);
-      },
-    ));
-
-    // Logging interceptor (chỉ trong debug mode)
-    if (kDebugMode) {
-      _dio.interceptors.add(LogInterceptor(
+  DioClient(this.dio, {required LoggerService logger, required Ref ref})
+      : _logger = logger,
+        _ref = ref {
+    dio.options.baseUrl = AppConstants.apiBaseUrl;
+    dio.options.connectTimeout = const Duration(seconds: 5);
+    dio.options.receiveTimeout = const Duration(seconds: 3);
+    dio.interceptors.addAll([
+      LogInterceptor(
+        error: true,
         requestBody: true,
         responseBody: true,
-        logPrint: (object) => debugPrint(object.toString()),
-      ));
-    }
+        requestHeader: true,
+        responseHeader: true,
+        request: true,
+      ),
+    ]);
+    addCsrfInterceptor(_ref);
   }
 
-  /// Xử lý response và errors
-  Future<T> _handleResponse<T>(Future<Response> Function() request) async {
-    try {
-      final response = await request();
-      return _processResponse<T>(response);
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    } catch (e, stackTrace) {
-      throw HttpError(
-        message: 'Unexpected error occurred: $e',
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Xử lý response
-  T _processResponse<T>(Response response) {
-    if (response.statusCode == 204 || response.data == null) {
-      return {} as T;
-    }
-
-    if (response.statusCode! >= 200 && response.statusCode! < 300) {
-      if (response.data is T) {
-        return response.data;
-      }
-      return response.data as T;
-    }
-
-    throw HttpError.fromResponse(response);
-  }
-
-  /// Xử lý Dio errors
-  HttpError _handleDioError(DioException error) {
-    switch (error.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return HttpError.timeout();
-      case DioExceptionType.connectionError:
-        return HttpError.network('Connection error occurred');
-      case DioExceptionType.badResponse:
-        return HttpError.fromResponse(error.response, error.stackTrace);
-      default:
-        return HttpError(
-          message: error.message ?? 'Unknown error occurred',
-          stackTrace: error.stackTrace,
+  void addCsrfInterceptor(Ref ref) {
+    final csrfRepo = ref.read(csrfRepositoryProvider);
+    csrfRepo.getCsrfToken().then((token) {
+      if (token != null) {
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) async {
+              if (_shouldAttachCsrfToken(options.method)) {
+                options.headers[CsrfConstants.csrfTokenHeader] = token;
+              }
+              return handler.next(options);
+            },
+          ),
         );
+      } else {
+        _refreshCsrfToken(csrfRepo).then((newToken) {
+          dio.interceptors.add(
+            InterceptorsWrapper(
+              onRequest: (options, handler) async {
+                options.headers[CsrfConstants.csrfTokenHeader] = newToken;
+                return handler.next(options);
+              },
+            ),
+          );
+        });
+      }
+    });
+  }
+
+  Future<String> _refreshCsrfToken(CsrfRepository csrfRepo) async {
+    try {
+      final response = await dio.get(
+        '/csrf-token',
+      );
+
+      final newToken = response.data['token'] as String;
+      await csrfRepo.setCsrfToken(newToken);
+      return newToken;
+    } on DioException catch (e) {
+      _logger.e('Failed to refresh CSRF token: ${e.message}');
+      throw ServerFailure(e.message.toString());
     }
+  }
+
+  bool _shouldAttachCsrfToken(String method) {
+    return method.toUpperCase() == 'POST' ||
+        method.toUpperCase() == 'PUT' ||
+        method.toUpperCase() == 'PATCH' ||
+        method.toUpperCase() == 'DELETE';
+  }
+
+  Future<Response> _handleError(DioException e) async {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      throw TimeoutFailure(e.message.toString());
+    }
+
+    if (e.type == DioExceptionType.connectionError) {
+      throw NetworkFailure(e.message.toString());
+    }
+
+    if (e.response?.statusCode != null) {
+      final statusCode = e.response!.statusCode!;
+      if (statusCode >= 500 && statusCode < 600) {
+        throw ServerFailure(e.message.toString());
+      } else if (statusCode == 401) {
+        throw UnauthorizedFailure(e.message.toString());
+      } else if (statusCode == 403) {
+        throw ForbiddenFailure(e.message.toString());
+      } else if (statusCode == 404) {
+        throw NotFoundFailure(e.message.toString());
+      } else {
+        throw ServerFailure(e.message.toString());
+      }
+    }
+
+    if (e.type == DioExceptionType.cancel) {
+      throw CancelFailure(e.message.toString());
+    }
+
+    if (e.type == DioExceptionType.badResponse) {
+      throw BadResponseFailure(e.message.toString());
+    }
+
+    if (e.type == DioExceptionType.badCertificate) {
+      throw BadCertificateFailure(e.message.toString());
+    }
+
+    throw ServerFailure(e.message.toString());
   }
 
   @override
   Future<T> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) {
-    return _handleResponse(() => _dio.get(
-          path,
-          queryParameters: queryParameters,
-          options: options,
-          cancelToken: cancelToken,
-        ));
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await dio.get<T>(
+        path,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response.data as T;
+    } on DioException catch (e) {
+      throw await _handleError(e);
+    }
   }
 
   @override
@@ -125,16 +156,19 @@ class DioClient implements IHttpClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) {
-    return _handleResponse(() => _dio.post(
-          path,
-          data: data,
-          queryParameters: queryParameters,
-          options: options,
-          cancelToken: cancelToken,
-        ));
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await dio.post<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response.data as T;
+    } on DioException catch (e) {
+      throw await _handleError(e);
+    }
   }
 
   @override
@@ -142,59 +176,36 @@ class DioClient implements IHttpClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) {
-    return _handleResponse(() => _dio.put(
-          path,
-          data: data,
-          queryParameters: queryParameters,
-          options: options,
-          cancelToken: cancelToken,
-        ));
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await dio.put<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response.data as T;
+    } on DioException catch (e) {
+      throw await _handleError(e);
+    }
   }
 
   @override
   Future<T> delete<T>(
     String path, {
-    dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) {
-    return _handleResponse(() => _dio.delete(
-          path,
-          data: data,
-          queryParameters: queryParameters,
-          options: options,
-          cancelToken: cancelToken,
-        ));
-  }
-
-  @override
-  Future<T> patch<T>(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) {
-    return _handleResponse(() => _dio.patch(
-          path,
-          data: data,
-          queryParameters: queryParameters,
-          options: options,
-          cancelToken: cancelToken,
-        ));
-  }
-
-  /// Xóa CSRF token
-  Future<void> clearCsrfToken() async {
-    await _csrfInterceptor.clearCsrfToken();
-  }
-
-  /// Refresh CSRF token
-  Future<String> refreshCsrfToken() async {
-    return await _csrfInterceptor.refreshCsrfToken();
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final response = await dio.delete<T>(
+        path,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response.data as T;
+    } on DioException catch (e) {
+      throw await _handleError(e);
+    }
   }
 }

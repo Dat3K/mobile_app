@@ -1,7 +1,6 @@
 import 'package:mobile_app/core/error/failures.dart';
 import '../../../../core/network/http_client_interface.dart';
-import '../../../../core/network/http_error.dart';
-import '../../../../core/network/dio_client.dart';
+import '../../../../core/error/http_error.dart';
 import '../models/user_model.dart';
 import '../../domain/value_objects/user_role.dart';
 
@@ -34,13 +33,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<AuthResponse> login(String email, String password) async {
     try {
-      // Đảm bảo có CSRF token mới trước khi login
-      if (_client is DioClient) {
-        await (_client as DioClient).refreshCsrfToken();
-      }
-
-      final response =
-          await _client.post<Map<String, dynamic>>('/login', data: {
+      final response = await _client.post<Map<String, dynamic>>('/login', data: {
         'email': email,
         'password': password,
       });
@@ -54,11 +47,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<AuthResponse> register(
       String email, String password, String fullName, UserRole role) async {
     try {
-      // Đảm bảo có CSRF token mới trước khi register
-      if (_client is DioClient) {
-        await (_client as DioClient).refreshCsrfToken();
-      }
-
       final response =
           await _client.post<Map<String, dynamic>>('/auth/register', data: {
         'email': email,
@@ -75,11 +63,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> forgotPassword(String email) async {
     try {
-      // Đảm bảo có CSRF token mới trước khi gửi yêu cầu reset password
-      if (_client is DioClient) {
-        await (_client as DioClient).refreshCsrfToken();
-      }
-
       await _client.post<void>('/auth/forgot-password', data: {
         'email': email,
       });
