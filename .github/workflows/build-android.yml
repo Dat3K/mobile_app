@@ -43,7 +43,7 @@ jobs:
 
       - name: Create Debug Build
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: ncipollo/release-action@v4
+        uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/app-debug.apk"
           token: ${{ secrets.GITHUB_TOKEN }}
