@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/services/logger_service.dart';
-import '../constants/csrf_constants.dart';
 import '../providers/csrf_provider.dart';
 import 'http_client_interface.dart';
+import 'interceptors/csrf_interceptor.dart';
 
 /// Dio instance provider
 final dioProvider = Provider<Dio>((ref) => Dio());
@@ -14,20 +14,56 @@ final dioProvider = Provider<Dio>((ref) => Dio());
 final dioClientProvider = Provider<DioClient>((ref) {
   final dio = ref.watch(dioProvider);
   final logger = ref.watch(loggerServiceProvider);
-  return DioClient(dio, logger: logger, ref: ref);
+  final csrfRepo = ref.watch(csrfRepositoryProvider);
+  return DioClient(dio, logger: logger, csrfRepo: csrfRepo);
 });
 
 class DioClient implements IHttpClient {
   final Dio dio;
   final LoggerService _logger;
-  final Ref _ref;
+  final CsrfRepository _csrfRepo;
 
-  DioClient(this.dio, {required LoggerService logger, required Ref ref})
-      : _logger = logger,
-        _ref = ref {
+  DioClient(
+    this.dio, {
+    required LoggerService logger,
+    required CsrfRepository csrfRepo,
+  })  : _logger = logger,
+        _csrfRepo = csrfRepo {
+    _initDio();
+  }
+
+  Future<void> _initDio() async {
     dio.options.baseUrl = AppConstants.apiBaseUrl;
-    dio.options.connectTimeout = const Duration(seconds: 5);
-    dio.options.receiveTimeout = const Duration(seconds: 3);
+    dio.options.connectTimeout = const Duration(seconds: 30);
+    dio.options.receiveTimeout = const Duration(seconds: 30);
+    dio.options.validateStatus = (status) => status! < 500;
+
+    // Thêm debug logging interceptor
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          _logger.d('Request URL: ${options.uri}');
+          _logger.d('Request Headers: ${options.headers}');
+          _logger.d('Request Data: ${options.data}');
+          return handler.next(options);
+        },
+        onResponse: (response, handler) {
+          _logger.d('Response Status: ${response.statusCode}');
+          _logger.d('Response Headers: ${response.headers}');
+          _logger.d('Response Data: ${response.data}');
+          return handler.next(response);
+        },
+        onError: (error, handler) {
+          _logger.e('Error: ${error.message}');
+          _logger.e('Error Response: ${error.response}');
+          return handler.next(error);
+        },
+      ),
+    );
+
+    // Thêm CSRF interceptor
+    dio.interceptors.add(CsrfInterceptor(_csrfRepo, dio, _logger));
+
     dio.interceptors.addAll([
       LogInterceptor(
         error: true,
@@ -36,60 +72,9 @@ class DioClient implements IHttpClient {
         requestHeader: true,
         responseHeader: true,
         request: true,
+        logPrint: (obj) => _logger.d(obj.toString()),
       ),
     ]);
-    addCsrfInterceptor(_ref);
-  }
-
-  void addCsrfInterceptor(Ref ref) {
-    final csrfRepo = ref.read(csrfRepositoryProvider);
-    csrfRepo.getCsrfToken().then((token) {
-      if (token != null) {
-        dio.interceptors.add(
-          InterceptorsWrapper(
-            onRequest: (options, handler) async {
-              if (_shouldAttachCsrfToken(options.method)) {
-                options.headers[CsrfConstants.csrfTokenHeader] = token;
-              }
-              return handler.next(options);
-            },
-          ),
-        );
-      } else {
-        _refreshCsrfToken(csrfRepo).then((newToken) {
-          dio.interceptors.add(
-            InterceptorsWrapper(
-              onRequest: (options, handler) async {
-                options.headers[CsrfConstants.csrfTokenHeader] = newToken;
-                return handler.next(options);
-              },
-            ),
-          );
-        });
-      }
-    });
-  }
-
-  Future<String> _refreshCsrfToken(CsrfRepository csrfRepo) async {
-    try {
-      final response = await dio.get(
-        '/csrf-token',
-      );
-
-      final newToken = response.data['token'] as String;
-      await csrfRepo.setCsrfToken(newToken);
-      return newToken;
-    } on DioException catch (e) {
-      _logger.e('Failed to refresh CSRF token: ${e.message}');
-      throw ServerFailure(e.message.toString());
-    }
-  }
-
-  bool _shouldAttachCsrfToken(String method) {
-    return method.toUpperCase() == 'POST' ||
-        method.toUpperCase() == 'PUT' ||
-        method.toUpperCase() == 'PATCH' ||
-        method.toUpperCase() == 'DELETE';
   }
 
   Future<Response> _handleError(DioException e) async {
