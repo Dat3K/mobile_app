@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mobile_app/core/router/router.dart';
@@ -8,6 +9,7 @@ import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   // Ensure proper binding initialization
@@ -15,6 +17,11 @@ void main() async {
 
   // Initialize EasyLocalization
   await EasyLocalization.ensureInitialized();
+
+  // Ensure path_provider is initialized
+  if (!kIsWeb) {
+    await getApplicationDocumentsDirectory();
+  }
 
   try {
     // Initialize Hive

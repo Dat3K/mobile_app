@@ -29,6 +29,5 @@ class AppColors {
   static const Color info = Color(0xFF3B82F6);
 
   // Hover States
-  static Color primaryHover = primary.withOpacity(0.9);
-  static Color backgroundHover = backgroundSecondary.withOpacity(0.9);
+
 }

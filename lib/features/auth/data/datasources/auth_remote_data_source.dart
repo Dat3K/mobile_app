@@ -9,10 +9,26 @@ class AuthResponse {
 
   AuthResponse({required this.user});
 
-  factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    return AuthResponse(
-      user: UserModel.fromJson(json['user']),
-    );
+  factory AuthResponse.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      throw const ServerFailure('Response data is null');
+    }
+
+    if (!json.containsKey('user') || json['user'] == null) {
+      throw const ServerFailure('User data is required but was null');
+    }
+
+    if (json['user'] is! Map<String, dynamic>) {
+      throw const ServerFailure('Invalid user data format');
+    }
+
+    try {
+      return AuthResponse(
+        user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
+      );
+    } catch (e) {
+      throw ServerFailure('Error parsing user data: $e');
+    }
   }
 }
 
@@ -40,6 +56,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return AuthResponse.fromJson(response);
     } on HttpError catch (e) {
       throw ServerFailure(e.message);
+    } catch (e) {
+      throw ServerFailure(e.toString());
     }
   }
 
@@ -57,6 +75,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return AuthResponse.fromJson(response);
     } on HttpError catch (e) {
       throw ServerFailure(e.message);
+    } catch (e) {
+      throw ServerFailure(e.toString());
     }
   }
 
@@ -68,6 +88,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       });
     } on HttpError catch (e) {
       throw ServerFailure(e.message);
+    } catch (e) {
+      throw ServerFailure(e.toString());
     }
   }
 }

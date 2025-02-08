@@ -6,6 +6,9 @@ import 'package:mobile_app/core/services/logger_service.dart';
 import '../providers/csrf_provider.dart';
 import 'http_client_interface.dart';
 import 'interceptors/csrf_interceptor.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:mobile_app/core/services/cookie_service.dart';
+import 'package:flutter/foundation.dart';
 
 /// Dio instance provider
 final dioProvider = Provider<Dio>((ref) => Dio());
@@ -15,51 +18,58 @@ final dioClientProvider = Provider<DioClient>((ref) {
   final dio = ref.watch(dioProvider);
   final logger = ref.watch(loggerServiceProvider);
   final csrfRepo = ref.watch(csrfRepositoryProvider);
-  return DioClient(dio, logger: logger, csrfRepo: csrfRepo);
+  final cookieService = ref.watch(cookieServiceProvider);
+  return DioClient(
+    dio,
+    logger: logger,
+    csrfRepo: csrfRepo,
+    cookieService: cookieService,
+  );
 });
 
 class DioClient implements IHttpClient {
   final Dio dio;
   final LoggerService _logger;
   final CsrfRepository _csrfRepo;
+  final CookieService _cookieService;
 
   DioClient(
     this.dio, {
     required LoggerService logger,
     required CsrfRepository csrfRepo,
+    required CookieService cookieService,
   })  : _logger = logger,
-        _csrfRepo = csrfRepo {
+        _csrfRepo = csrfRepo,
+        _cookieService = cookieService {
     _initDio();
   }
 
   Future<void> _initDio() async {
+    await _cookieService.init();
+    
     dio.options.baseUrl = AppConstants.apiBaseUrl;
     dio.options.connectTimeout = const Duration(seconds: 30);
     dio.options.receiveTimeout = const Duration(seconds: 30);
     dio.options.validateStatus = (status) => status! < 500;
 
-    // Thêm debug logging interceptor
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          _logger.d('Request URL: ${options.uri}');
-          _logger.d('Request Headers: ${options.headers}');
-          _logger.d('Request Data: ${options.data}');
-          return handler.next(options);
-        },
-        onResponse: (response, handler) {
-          _logger.d('Response Status: ${response.statusCode}');
-          _logger.d('Response Headers: ${response.headers}');
-          _logger.d('Response Data: ${response.data}');
-          return handler.next(response);
-        },
-        onError: (error, handler) {
-          _logger.e('Error: ${error.message}');
-          _logger.e('Error Response: ${error.response}');
-          return handler.next(error);
-        },
-      ),
-    );
+    // Cấu hình đặc biệt cho web
+    if (kIsWeb) {
+      // Cấu hình CORS
+      dio.options.extra = {
+        'withCredentials': true,
+      };
+      
+      // Headers cho CORS và bảo mật
+      dio.options.headers.addAll({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Credentials': 'true',
+      });
+
+      _logger.d('Web CORS configuration enabled for anhvietnguyen.id.vn');
+    } else {
+      dio.interceptors.add(CookieManager(_cookieService.cookieJar));
+    }
 
     // Thêm CSRF interceptor
     dio.interceptors.add(CsrfInterceptor(_csrfRepo, dio, _logger));
@@ -72,7 +82,6 @@ class DioClient implements IHttpClient {
         requestHeader: true,
         responseHeader: true,
         request: true,
-        logPrint: (obj) => _logger.d(obj.toString()),
       ),
     ]);
   }
@@ -130,6 +139,14 @@ class DioClient implements IHttpClient {
         queryParameters: queryParameters,
         options: Options(headers: headers),
       );
+
+      if (response.data == null) {
+        if (T.toString() == 'void' || T.toString() == 'dynamic') {
+          return null as T;
+        }
+        throw ServerFailure('Response data is null');
+      }
+
       return response.data as T;
     } on DioException catch (e) {
       throw await _handleError(e);
@@ -150,6 +167,14 @@ class DioClient implements IHttpClient {
         queryParameters: queryParameters,
         options: Options(headers: headers),
       );
+
+      if (response.data == null) {
+        if (T.toString() == 'void' || T.toString() == 'dynamic') {
+          return null as T;
+        }
+        throw ServerFailure('Response data is null');
+      }
+
       return response.data as T;
     } on DioException catch (e) {
       throw await _handleError(e);
@@ -170,6 +195,14 @@ class DioClient implements IHttpClient {
         queryParameters: queryParameters,
         options: Options(headers: headers),
       );
+
+      if (response.data == null) {
+        if (T.toString() == 'void' || T.toString() == 'dynamic') {
+          return null as T;
+        }
+        throw ServerFailure('Response data is null');
+      }
+
       return response.data as T;
     } on DioException catch (e) {
       throw await _handleError(e);

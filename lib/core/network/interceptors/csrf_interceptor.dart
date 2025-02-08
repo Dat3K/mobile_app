@@ -27,6 +27,23 @@ class CsrfInterceptor extends Interceptor {
       final token = await _getCsrfToken();
       options.headers[CsrfConstants.csrfTokenHeader] = token;
       _logger.d('CSRF token attached to ${options.path}');
+
+      // Thêm CSRF token vào body nếu là POST, PUT, DELETE
+      if (['POST', 'PUT', 'DELETE'].contains(options.method.toUpperCase())) {
+        if (options.data is Map) {
+          final Map<String, dynamic> data =
+              Map<String, dynamic>.from(options.data);
+          data['_csrf'] = token;
+          options.data = data;
+        } else if (options.data is FormData) {
+          options.data.fields.add(MapEntry('_csrf', token));
+        } else {
+          options.data ??= {'_csrf': token};
+        }
+
+        _logger.d('Added CSRF token to request body: ${options.data}');
+      }
+
       return handler.next(options);
     } catch (e) {
       _logger.e('Failed to get CSRF token: $e');
@@ -39,15 +56,28 @@ class CsrfInterceptor extends Interceptor {
     }
   }
 
-  @override 
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // Kiểm tra và cập nhật CSRF token từ response header nếu có
+    final newToken = response.headers.value('X-CSRF-Token');
+    if (newToken != null) {
+      _csrfRepo.setCsrfToken(newToken);
+      _logger.d('Updated CSRF token from response');
+    }
+
+    return handler.next(response);
+  }
+
+  @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 403 && 
+    if (err.response?.statusCode == 403 &&
         err.response?.data['message']?.toString().contains('CSRF') == true) {
       _logger.w('CSRF token rejected, attempting refresh and retry');
-      
+
       try {
         final token = await _refreshToken();
-        final retryResponse = await _retryRequestWithBackoff(err.requestOptions, token);
+        final retryResponse =
+            await _retryRequestWithBackoff(err.requestOptions, token);
         _logger.i('Request retry successful after CSRF refresh');
         return handler.resolve(retryResponse);
       } catch (e) {
@@ -66,11 +96,12 @@ class CsrfInterceptor extends Interceptor {
         return _csrfToken!;
       }
     }
-    
+
     if (_isRefreshing) {
       _logger.d('Waiting for CSRF token refresh to complete');
       int attempts = 0;
-      while (_isRefreshing && attempts < 30) { // Timeout sau 3 giây
+      while (_isRefreshing && attempts < 30) {
+        // Timeout sau 3 giây
         await Future.delayed(const Duration(milliseconds: 100));
         attempts++;
       }
@@ -90,7 +121,7 @@ class CsrfInterceptor extends Interceptor {
         options: Options(
           headers: {CsrfConstants.csrfTokenHeader: null},
           // Không retry cho request lấy token để tránh vòng lặp vô tận
-          extra: {'noRetry': true}, 
+          extra: {'noRetry': true},
         ),
       );
 
@@ -125,16 +156,18 @@ class CsrfInterceptor extends Interceptor {
         lastError = e as DioException;
         attempts++;
         if (attempts < _maxRetries) {
-          _logger.w('Retry attempt $attempts failed, waiting before next attempt');
+          _logger
+              .w('Retry attempt $attempts failed, waiting before next attempt');
           await Future.delayed(_retryDelay * attempts);
         }
       }
     }
 
-    throw lastError ?? DioException(
-      requestOptions: requestOptions,
-      error: 'Max retry attempts reached',
-    );
+    throw lastError ??
+        DioException(
+          requestOptions: requestOptions,
+          error: 'Max retry attempts reached',
+        );
   }
 
   Future<Response<dynamic>> _retryRequest(
