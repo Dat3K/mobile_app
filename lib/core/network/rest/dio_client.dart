@@ -1,22 +1,26 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/services/logger_service.dart';
+import 'package:mobile_app/core/services/secure_storage_service.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
+import 'package:mobile_app/core/network/rest/cookie_manager.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'dart:io' show Cookie;
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';
 
 class DioClient implements IRestClient {
   final Dio _dio;
   final LoggerService _logger;
-  final FlutterSecureStorage _storage;
+  final SecureStorageService _storage;
   late final CsrfInterceptor _csrfInterceptor;
+  CookieManager? _cookieManager;
 
   DioClient(
     this._dio, {
     required LoggerService logger,
-    required FlutterSecureStorage storage,
+    required SecureStorageService storage,
   })  : _logger = logger,
         _storage = storage {
     _initDio();
@@ -43,6 +47,13 @@ class DioClient implements IRestClient {
       });
 
       _logger.d('Web CORS configuration enabled');
+    } else {
+      // Khởi tạo và thêm cookie manager chỉ cho mobile
+      _cookieManager = await AppCookieManager.create();
+      if (_cookieManager != null) {
+        _dio.interceptors.add(_cookieManager!);
+        _logger.d('Cookie manager initialized for mobile');
+      }
     }
 
     // Thêm CSRF interceptor
@@ -60,13 +71,24 @@ class DioClient implements IRestClient {
       ),
     );
 
-    // Lấy CSRF token khi khởi tạo
+    // Khởi tạo CSRF token
     try {
-      await _csrfInterceptor.fetchCsrfToken();
-      _logger.d('CSRF token fetched successfully');
+      await _csrfInterceptor.initCsrfToken();
+      _logger.d('CSRF token initialized successfully');
     } catch (e) {
-      _logger.e('Failed to fetch CSRF token: $e');
+      _logger.e('Failed to initialize CSRF token: $e');
     }
+  }
+
+  /// Xóa tất cả cookies
+  Future<void> clearCookies() async {
+    await AppCookieManager.clearCookies(_cookieManager);
+    _logger.d('All cookies cleared');
+  }
+
+  /// Lấy danh sách cookies cho domain
+  Future<List<Cookie>> getCookies(String domain) async {
+    return AppCookieManager.getCookies(_cookieManager, domain);
   }
 
   Future<Response> _handleError(DioException e) async {
