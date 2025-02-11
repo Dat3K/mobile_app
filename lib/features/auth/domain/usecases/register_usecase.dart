@@ -25,11 +25,15 @@ class RegisterUseCase implements UseCase<AuthResult, RegisterParams> {
 
   @override
   Future<Either<Failure, AuthResult>> call(RegisterParams params) async {
-    return await repository.register(
+    final result = await repository.register(
       params.email,
       params.password,
       params.fullName,
       params.role,
+    );
+    return result.fold(
+      (failure) => Left(failure),
+      (authResult) => Right(authResult),
     );
   }
 }

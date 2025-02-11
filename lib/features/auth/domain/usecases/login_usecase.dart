@@ -17,6 +17,10 @@ class LoginUseCase implements UseCase<AuthResult, LoginParams> {
 
   @override
   Future<Either<Failure, AuthResult>> call(LoginParams params) async {
-    return await repository.login(params.email, params.password);
+    final result = await repository.login(params.email, params.password);
+    return result.fold(
+      (failure) => Left(failure),
+      (authResult) => Right(authResult),
+    );
   }
 }

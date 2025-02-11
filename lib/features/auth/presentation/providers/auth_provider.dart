@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
-import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
+import 'package:mobile_app/features/auth/presentation/providers/usecase_providers.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/user_entity.dart';

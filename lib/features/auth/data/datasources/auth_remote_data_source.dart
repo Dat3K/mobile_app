@@ -1,5 +1,5 @@
 import 'package:mobile_app/core/error/failures.dart';
-import '../../../../core/network/http_client_interface.dart';
+import '../../../../core/network/rest/http_client_interface.dart';
 import '../../../../core/error/http_error.dart';
 import '../models/user_model.dart';
 import '../../domain/value_objects/user_role.dart';
@@ -40,10 +40,10 @@ abstract class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final IHttpClient _client;
+  final IRestClient _client;
 
   AuthRemoteDataSourceImpl({
-    required IHttpClient client,
+    required IRestClient client,
   }) : _client = client;
 
   @override

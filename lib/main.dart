@@ -6,7 +6,7 @@ import 'package:mobile_app/core/router/router.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/auth/data/models/user_model.dart';
 import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
-import 'package:mobile_app/features/auth/presentation/providers/auth_dependencies.dart';
+import 'package:mobile_app/features/auth/presentation/providers/storage_providers.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:path_provider/path_provider.dart';

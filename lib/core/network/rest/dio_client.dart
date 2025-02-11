@@ -1,80 +1,55 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/services/logger_service.dart';
-import '../providers/csrf_provider.dart';
+import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'http_client_interface.dart';
-import 'interceptors/csrf_interceptor.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:flutter/foundation.dart';
 
-/// Dio instance provider
-final dioProvider = Provider<Dio>((ref) => Dio());
-
-/// Dio Client provider
-final dioClientProvider = Provider<DioClient>((ref) {
-  final dio = ref.watch(dioProvider);
-  final logger = ref.watch(loggerServiceProvider);
-  final csrfRepo = ref.watch(csrfRepositoryProvider);
-  final cookieService = ref.watch(cookieServiceProvider);
-  return DioClient(
-    dio,
-    logger: logger,
-    csrfRepo: csrfRepo,
-    cookieService: cookieService,
-  );
-});
-
-class DioClient implements IHttpClient {
-  final Dio dio;
+class DioClient implements IRestClient {
+  final Dio _dio;
   final LoggerService _logger;
-  final CsrfRepository _csrfRepo;
-  final CookieService _cookieService;
+  final FlutterSecureStorage _storage;
+  late final CsrfInterceptor _csrfInterceptor;
 
   DioClient(
-    this.dio, {
+    this._dio, {
     required LoggerService logger,
-    required CsrfRepository csrfRepo,
-    required CookieService cookieService,
+    required FlutterSecureStorage storage,
   })  : _logger = logger,
-        _csrfRepo = csrfRepo,
-        _cookieService = cookieService {
+        _storage = storage {
     _initDio();
   }
 
   Future<void> _initDio() async {
-    await _cookieService.init();
-    
-    dio.options.baseUrl = AppConstants.apiBaseUrl;
-    dio.options.connectTimeout = const Duration(seconds: 30);
-    dio.options.receiveTimeout = const Duration(seconds: 30);
-    dio.options.validateStatus = (status) => status! < 500;
+    _dio.options.baseUrl = AppConstants.apiBaseUrl;
+    _dio.options.connectTimeout = const Duration(seconds: 30);
+    _dio.options.receiveTimeout = const Duration(seconds: 30);
+    _dio.options.validateStatus = (status) => status! < 500;
 
     // Cấu hình đặc biệt cho web
     if (kIsWeb) {
       // Cấu hình CORS
-      dio.options.extra = {
+      _dio.options.extra = {
         'withCredentials': true,
       };
       
       // Headers cho CORS và bảo mật
-      dio.options.headers.addAll({
+      _dio.options.headers.addAll({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Access-Control-Allow-Credentials': 'true',
       });
 
-      _logger.d('Web CORS configuration enabled for anhvietnguyen.id.vn');
-    } else {
-      dio.interceptors.add(CookieManager(_cookieService.cookieJar));
+      _logger.d('Web CORS configuration enabled');
     }
 
     // Thêm CSRF interceptor
-    dio.interceptors.add(CsrfInterceptor(_csrfRepo, dio, _logger));
+    _csrfInterceptor = CsrfInterceptor(_dio, _storage);
+    _dio.interceptors.add(_csrfInterceptor);
 
-    dio.interceptors.addAll([
+    _dio.interceptors.add(
       LogInterceptor(
         error: true,
         requestBody: true,
@@ -83,7 +58,15 @@ class DioClient implements IHttpClient {
         responseHeader: true,
         request: true,
       ),
-    ]);
+    );
+
+    // Lấy CSRF token khi khởi tạo
+    try {
+      await _csrfInterceptor.fetchCsrfToken();
+      _logger.d('CSRF token fetched successfully');
+    } catch (e) {
+      _logger.e('Failed to fetch CSRF token: $e');
+    }
   }
 
   Future<Response> _handleError(DioException e) async {
@@ -134,7 +117,7 @@ class DioClient implements IHttpClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final response = await dio.get<T>(
+      final response = await _dio.get<T>(
         path,
         queryParameters: queryParameters,
         options: Options(headers: headers),
@@ -161,7 +144,7 @@ class DioClient implements IHttpClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final response = await dio.post<T>(
+      final response = await _dio.post<T>(
         path,
         data: data,
         queryParameters: queryParameters,
@@ -189,7 +172,7 @@ class DioClient implements IHttpClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final response = await dio.put<T>(
+      final response = await _dio.put<T>(
         path,
         data: data,
         queryParameters: queryParameters,
@@ -216,7 +199,7 @@ class DioClient implements IHttpClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final response = await dio.delete<T>(
+      final response = await _dio.delete<T>(
         path,
         queryParameters: queryParameters,
         options: Options(headers: headers),

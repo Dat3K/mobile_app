@@ -1,4 +1,4 @@
-abstract class IHttpClient {
+abstract class IRestClient {
   Future<T> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
