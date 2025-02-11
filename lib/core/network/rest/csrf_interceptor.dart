@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:mobile_app/core/services/secure_storage_service.dart';
+import 'package:mobile_app/core/storage/secure_storage.dart';
 
 /// Interceptor để xử lý CSRF token trong các request
 /// 

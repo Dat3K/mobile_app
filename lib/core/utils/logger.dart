@@ -1,10 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-
-/// Provider cho LoggerService
-final loggerServiceProvider = Provider<LoggerService>((ref) {
-  return LoggerService();
-});
 
 /// Interface cho LoggerService
 abstract class ILoggerService {

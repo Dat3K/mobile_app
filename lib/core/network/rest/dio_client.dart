@@ -1,28 +1,31 @@
 import 'package:dio/dio.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
-import 'package:mobile_app/core/services/logger_service.dart';
-import 'package:mobile_app/core/services/secure_storage_service.dart';
+import 'package:mobile_app/core/utils/logger.dart';
+import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
-import 'package:mobile_app/core/network/rest/cookie_manager.dart';
+import 'package:mobile_app/core/network/rest/cookie_service.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'dart:io' show Cookie;
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';
 
+/// HTTP client sử dụng Dio với đầy đủ interceptor và cấu hình
 class DioClient implements IRestClient {
   final Dio _dio;
   final LoggerService _logger;
   final SecureStorageService _storage;
+  final CookieService _cookieService;
   late final CsrfInterceptor _csrfInterceptor;
-  CookieManager? _cookieManager;
 
   DioClient(
     this._dio, {
     required LoggerService logger,
     required SecureStorageService storage,
+    required CookieService cookieService,
   })  : _logger = logger,
-        _storage = storage {
+        _storage = storage,
+        _cookieService = cookieService {
     _initDio();
   }
 
@@ -34,26 +37,9 @@ class DioClient implements IRestClient {
 
     // Cấu hình đặc biệt cho web
     if (kIsWeb) {
-      // Cấu hình CORS
-      _dio.options.extra = {
-        'withCredentials': true,
-      };
-      
-      // Headers cho CORS và bảo mật
-      _dio.options.headers.addAll({
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Credentials': 'true',
-      });
-
-      _logger.d('Web CORS configuration enabled');
+      _configureForWeb();
     } else {
-      // Khởi tạo và thêm cookie manager chỉ cho mobile
-      _cookieManager = await AppCookieManager.create();
-      if (_cookieManager != null) {
-        _dio.interceptors.add(_cookieManager!);
-        _logger.d('Cookie manager initialized for mobile');
-      }
+      await _configureForMobile();
     }
 
     // Thêm CSRF interceptor
@@ -78,17 +64,44 @@ class DioClient implements IRestClient {
     } catch (e) {
       _logger.e('Failed to initialize CSRF token: $e');
     }
+
+    // Lấy cookies
+    final cookies = await _cookieService.getCookies(AppConstants.apiBaseUrl);
+    _logger.d('Cookies: $cookies');
+  }
+
+  /// Cấu hình cho web platform
+  void _configureForWeb() {
+    _dio.options.extra = {
+      'withCredentials': true,
+    };
+    
+    _dio.options.headers.addAll({
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Credentials': 'true',
+    });
+
+    _logger.d('Web CORS configuration enabled');
+  }
+
+  /// Cấu hình cho mobile platform
+  Future<void> _configureForMobile() async {
+    final cookieManager = await _cookieService.init();
+    if (cookieManager != null) {
+      _dio.interceptors.add(cookieManager);
+      _logger.d('Cookie manager initialized for mobile');
+    }
   }
 
   /// Xóa tất cả cookies
   Future<void> clearCookies() async {
-    await AppCookieManager.clearCookies(_cookieManager);
-    _logger.d('All cookies cleared');
+    await _cookieService.clearCookies();
   }
 
   /// Lấy danh sách cookies cho domain
   Future<List<Cookie>> getCookies(String domain) async {
-    return AppCookieManager.getCookies(_cookieManager, domain);
+    return _cookieService.getCookies(domain);
   }
 
   Future<Response> _handleError(DioException e) async {
