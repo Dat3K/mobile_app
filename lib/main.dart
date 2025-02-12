@@ -10,6 +10,7 @@ import 'package:mobile_app/features/auth/presentation/providers/storage_provider
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:device_preview/device_preview.dart';
 
 void main() async {
   // Ensure proper binding initialization
@@ -44,18 +45,21 @@ void main() async {
     };
 
     runApp(
-      EasyLocalization(
-        supportedLocales: const [
-          Locale('vi', 'VN'),
-          Locale('en', 'US'),
-        ],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('vi', 'VN'),
-        child: ProviderScope(
-          overrides: [
-            userBoxProvider.overrideWithValue(userBox),
+      DevicePreview(
+        enabled: kDebugMode && kIsWeb,
+        builder: (context) => EasyLocalization(
+          supportedLocales: const [
+            Locale('vi', 'VN'),
+            Locale('en', 'US'),
           ],
-          child: const MyApp(),
+          path: 'assets/translations',
+          fallbackLocale: const Locale('vi', 'VN'),
+          child: ProviderScope(
+            overrides: [
+              userBoxProvider.overrideWithValue(userBox),
+            ],
+            child: const MyApp(),
+          ),
         ),
       ),
     );
@@ -85,6 +89,7 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
+      builder: DevicePreview.appBuilder,
     );
   }
 }

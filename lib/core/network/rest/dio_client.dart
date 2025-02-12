@@ -5,7 +5,6 @@ import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'dart:io' show Cookie;
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';

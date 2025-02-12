@@ -4,16 +4,21 @@ import 'package:mobile_app/core/constants/app_routes.dart';
 import '../../domain/value_objects/user_role.dart';
 import '../providers/auth_provider.dart';
 
-class RegisterPage extends ConsumerWidget {
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
+
+  @override
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
   UserRole _selectedRole = UserRole.student;
 
-  RegisterPage({super.key});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     
     ref.listen(authControllerProvider, (previous, next) {
@@ -71,7 +76,9 @@ class RegisterPage extends ConsumerWidget {
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
-                  _selectedRole = value;
+                  setState(() {
+                    _selectedRole = value;
+                  });
                 }
               },
             ),
