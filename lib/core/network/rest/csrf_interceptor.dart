@@ -21,6 +21,12 @@ class CsrfInterceptor extends Interceptor {
   /// Endpoint để lấy CSRF token
   static const String _csrfEndpoint = '/csrf-token';
 
+  /// Error message khi CSRF token không hợp lệ
+  static const String _invalidCsrfMessage = 'Invalid_CsrfToken';
+
+  /// Số lần thử lại tối đa khi gặp lỗi CSRF
+  static const int _maxRetries = 1;
+
   /// Constructor
   CsrfInterceptor(this._dio, this._storage);
 
@@ -48,9 +54,13 @@ class CsrfInterceptor extends Interceptor {
         token = await _readToken();
       }
 
-      // Thêm token vào header nếu có
+      // Thêm token vào header và body nếu có
       if (token != null) {
         _addTokenToHeader(options, token);
+        // Chỉ thêm vào body nếu không phải là GET request
+        if (options.method != 'GET') {
+          _addTokenToBody(options, token);
+        }
       }
       
       handler.next(options);
@@ -58,6 +68,37 @@ class CsrfInterceptor extends Interceptor {
       // Nếu có lỗi, vẫn cho phép request tiếp tục
       handler.next(options);
     }
+  }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) async {
+    if (_isInvalidCsrfResponse(response)) {
+      // Lấy request gốc
+      final originalRequest = response.requestOptions;
+      
+      try {
+        // Lấy CSRF token mới
+        await _fetchAndSaveToken();
+        final newToken = await _readToken();
+        
+        if (newToken != null) {
+          // Cập nhật token trong request
+          _addTokenToHeader(originalRequest, newToken);
+          if (originalRequest.method != 'GET') {
+            _addTokenToBody(originalRequest, newToken);
+          }
+          
+          // Thử lại request với token mới
+          final retryResponse = await _dio.fetch(originalRequest);
+          return handler.next(retryResponse);
+        }
+      } catch (e) {
+        // Nếu có lỗi khi lấy token mới, trả về response gốc
+        return handler.next(response);
+      }
+    }
+    
+    return handler.next(response);
   }
 
   /// Đọc token từ storage
@@ -68,6 +109,17 @@ class CsrfInterceptor extends Interceptor {
   /// Thêm token vào header của request
   void _addTokenToHeader(RequestOptions options, String token) {
     options.headers[_csrfHeaderKey] = token;
+  }
+
+  /// Thêm token vào body của request
+  void _addTokenToBody(RequestOptions options, String token) {
+    if (options.data is Map) {
+      final Map<String, dynamic> data = Map<String, dynamic>.from(options.data);
+      data['_csrf'] = token;
+      options.data = data;
+    } else if (options.data == null) {
+      options.data = {'_csrf': token};
+    }
   }
 
   /// Kiểm tra xem có phải là request lấy CSRF token không
@@ -88,20 +140,26 @@ class CsrfInterceptor extends Interceptor {
 
   /// Trích xuất token từ response data
   String _extractTokenFromResponse(dynamic responseData) {
-    if (responseData is! Map<String, dynamic>) {
-      throw Exception('Invalid response format');
+    if (responseData is! String) {
+      throw Exception('Invalid response format: expected string');
     }
-
-    final token = responseData['token'] as String?;
-    if (token == null) {
-      throw Exception('CSRF token not found in response');
-    }
-
-    return token;
+    return responseData;
   }
 
   /// Lưu token vào storage
   Future<void> _saveToken(String token) async {
     await _storage.write(_csrfTokenKey, token);
+  }
+
+  /// Kiểm tra xem response có phải là lỗi Invalid CSRF Token không
+  bool _isInvalidCsrfResponse(Response response) {
+    try {
+      final data = response.data;
+      return response.statusCode == 403 && 
+             data is Map<String, dynamic> && 
+             data['message']?.toString().contains(_invalidCsrfMessage) == true;
+    } catch (e) {
+      return false;
+    }
   }
 } 
