@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
-import 'package:mobile_app/core/providers/cookie_providers.dart';
-import 'package:mobile_app/core/providers/navigation_providers.dart';
 import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';

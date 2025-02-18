@@ -1,4 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_app/core/router/router.dart';
+
+final navigationServiceProvider = Provider<NavigationService>((ref) {
+  final router = ref.watch(routerProvider);
+  return NavigationService(router);
+}); 
 
 class NavigationService {
   final GoRouter _router;

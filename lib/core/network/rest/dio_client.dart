@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/utils/logger.dart';
@@ -8,6 +9,20 @@ import 'dart:io' show Cookie;
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobile_app/core/security/csrf_token_service.dart';
+
+// Provider cho Dio instance
+final dioProvider = Provider<Dio>((ref) {
+  return Dio();
+}); 
+
+// Provider cho DioClient
+final dioClientProvider = Provider<DioClient>((ref) {
+  final dio = ref.watch(dioProvider);
+  final logger = ref.watch(loggerServiceProvider);
+  final cookieService = ref.watch(cookieServiceProvider);
+  final csrfTokenService = ref.watch(csrfTokenServiceProvider);
+  return DioClient(dio: dio, logger: logger, cookieService: cookieService, csrfTokenService: csrfTokenService);
+});
 
 /// HTTP client sử dụng Dio với đầy đủ interceptor và cấu hình
 class DioClient implements IRestClient {

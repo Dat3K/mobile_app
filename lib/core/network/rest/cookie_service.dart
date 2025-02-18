@@ -1,10 +1,25 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/core/storage/cookie_storage.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/security/csrf_token_service.dart';
+
+/// Provider cho CookieService
+final cookieServiceProvider = Provider<CookieService>((ref) {
+  final logger = ref.watch(loggerServiceProvider);
+  final secureStorage = ref.watch(secureStorageServiceProvider);
+  final csrfTokenService = ref.watch(csrfTokenServiceProvider);
+  
+  return CookieService(
+    logger: logger,
+    secureStorage: secureStorage,
+    csrfTokenService: csrfTokenService,
+  );
+});
 
 /// Service để quản lý cookie trong ứng dụng
 class CookieService {

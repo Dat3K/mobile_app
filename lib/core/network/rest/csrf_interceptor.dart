@@ -1,11 +1,18 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
 import 'package:mobile_app/core/security/csrf_token_service.dart';
+import 'package:mobile_app/core/storage/secure_storage.dart';
+import 'package:mobile_app/core/utils/logger.dart';
 
-/// Interceptor để xử lý CSRF token trong các request
-///
-/// Tự động lấy và thêm CSRF token vào header của mỗi request.
-/// Token được quản lý bởi CsrfTokenService.
+
+final csrfTokenServiceProvider = Provider<CsrfTokenService>((ref) {
+  return CsrfTokenService(
+    storage: ref.watch(secureStorageServiceProvider),
+    logger: ref.watch(loggerServiceProvider),
+  );
+});
+
 class CsrfInterceptor extends Interceptor {
   /// Service để quản lý CSRF token
   final CsrfTokenService _csrfTokenService;
