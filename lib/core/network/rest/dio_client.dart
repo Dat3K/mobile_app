@@ -58,6 +58,11 @@ class DioClient implements IRestClient {
 
     // Khởi tạo CSRF token
     try {
+      // clear token
+      await _storage.delete("XSRF-TOKEN");
+      // clear cookie
+      await _cookieService.clearCookies();
+      // init token
       await _csrfInterceptor.initCsrfToken();
       _logger.d('CSRF token initialized successfully');
     } catch (e) {
@@ -65,8 +70,13 @@ class DioClient implements IRestClient {
     }
 
     // Lấy cookies
-    final cookies = await _cookieService.getCookies(AppConstants.apiBaseUrl);
-    _logger.d('Cookies: $cookies');
+    try {
+      // clear cookies
+      final cookies = await _cookieService.getCookies(AppConstants.apiBaseUrl);
+      _logger.d('Cookies: $cookies');
+    } catch (e) {
+      _logger.e('Failed to get cookies: $e');
+    }
   }
 
   /// Cấu hình cho web platform

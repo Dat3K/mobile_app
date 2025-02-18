@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/providers/navigation_providers.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/usecase_providers.dart';
@@ -38,16 +41,19 @@ class AuthController extends StateNotifier<AuthState> {
   final LogoutUseCase _logoutUseCase;
   final RegisterUseCase _registerUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final NavigationService _navigationService;
 
   AuthController({
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required RegisterUseCase registerUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
+    required NavigationService navigationService,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
         _registerUseCase = registerUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
+        _navigationService = navigationService,
         super(const AuthState()) {
     getCurrentUser();
   }
@@ -62,12 +68,29 @@ class AuthController extends StateNotifier<AuthState> {
         user: null,
         failure: failure,
       ),
-      (user) => state = state.copyWith(
-        isLoading: false,
-        user: user,
-        failure: null,
-      ),
+      (user) {
+        state = state.copyWith(
+          isLoading: false,
+          user: user,
+          failure: null,
+        );
+        _navigateBasedOnRole(user);
+      },
     );
+  }
+
+  void _navigateBasedOnRole(UserEntity user) {
+    switch (user.role) {
+      case UserRole.student:
+        _navigationService.replace(RoutePaths.student);
+        break;
+      case UserRole.faculty:
+        _navigationService.replace(RoutePaths.faculty);
+        break;
+      case UserRole.enterprise:
+        _navigationService.replace(RoutePaths.enterprise);
+        break;
+    }
   }
 
   Future<void> login(String email, String password) async {
@@ -85,11 +108,14 @@ class AuthController extends StateNotifier<AuthState> {
         user: null,
         failure: failure,
       ),
-      (authResult) => state = state.copyWith(
-        isLoading: false,
-        user: authResult.user,
-        failure: null,
-      ),
+      (authResult) {
+        state = state.copyWith(
+          isLoading: false,
+          user: authResult.user,
+          failure: null,
+        );
+        _navigateBasedOnRole(authResult.user);
+      },
     );
   }
 
@@ -116,11 +142,14 @@ class AuthController extends StateNotifier<AuthState> {
         failure: failure,
         user: null,
       ),
-      (authResult) => state = state.copyWith(
-        isLoading: false,
-        user: authResult.user,
-        failure: null,
-      ),
+      (authResult) {
+        state = state.copyWith(
+          isLoading: false,
+          user: authResult.user,
+          failure: null,
+        );
+        _navigateBasedOnRole(authResult.user);
+      },
     );
   }
 
@@ -136,11 +165,14 @@ class AuthController extends StateNotifier<AuthState> {
         isLoading: false,
         failure: failure,
       ),
-      (_) => state = state.copyWith(
-        isLoading: false,
-        user: null,
-        failure: null,
-      ),
+      (_) {
+        state = state.copyWith(
+          isLoading: false,
+          user: null,
+          failure: null,
+        );
+        _navigationService.replace(RoutePaths.login);
+      },
     );
   }
 }
@@ -152,5 +184,6 @@ final authControllerProvider =
     logoutUseCase: ref.watch(logoutUseCaseProvider),
     registerUseCase: ref.watch(registerUseCaseProvider),
     getCurrentUserUseCase: ref.watch(getCurrentUserUseCaseProvider),
+    navigationService: ref.watch(navigationServiceProvider),
   );
 });

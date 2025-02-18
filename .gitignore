@@ -141,5 +141,7 @@ app.*.symbols
 
 *.env
 
-# windsurf rules
-.windsurfrules
+# cursor rules
+.cursor
+
+

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_app/core/constants/app_routes.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
 
 class EnterpriseScaffold extends StatelessWidget {
   final Widget child;
@@ -47,29 +47,29 @@ class EnterpriseScaffold extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('${AppRoutes.enterprise}/jobs')) return 1;
-    if (location.startsWith('${AppRoutes.enterprise}/applicants')) return 2;
-    if (location.startsWith('${AppRoutes.enterprise}/analytics')) return 3;
-    if (location.startsWith('${AppRoutes.enterprise}/profile')) return 4;
+    if (location.startsWith('${RoutePaths.enterprise}/jobs')) return 1;
+    if (location.startsWith('${RoutePaths.enterprise}/applicants')) return 2;
+    if (location.startsWith('${RoutePaths.enterprise}/analytics')) return 3;
+    if (location.startsWith('${RoutePaths.enterprise}/profile')) return 4;
     return 0; // Home page
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go(AppRoutes.enterprise);
+        context.go(RoutePaths.enterprise);
         break;
       case 1:
-        context.go('${AppRoutes.enterprise}/jobs');
+        context.go('${RoutePaths.enterprise}/jobs');
         break;
       case 2:
-        context.go('${AppRoutes.enterprise}/applicants');
+        context.go('${RoutePaths.enterprise}/applicants');
         break;
       case 3:
-        context.go('${AppRoutes.enterprise}/analytics');
+        context.go('${RoutePaths.enterprise}/analytics');
         break;
       case 4:
-        context.go('${AppRoutes.enterprise}/profile');
+        context.go('${RoutePaths.enterprise}/profile');
         break;
     }
   }

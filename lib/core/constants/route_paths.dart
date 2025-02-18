@@ -1,6 +1,6 @@
 /// Contains all the route paths used in the application
-class AppRoutes {
-  AppRoutes._(); // Private constructor to prevent instantiation
+class RoutePaths {
+  RoutePaths._(); // Private constructor to prevent instantiation
 
   // Auth Routes
   static const String login = '/login';
@@ -26,4 +26,4 @@ class AppRoutes {
   static const String enterpriseApplicants = '$enterprise/applicants';
   static const String enterpriseProfile = '$enterprise/profile';
   static const String enterpriseAnalytics = '$enterprise/analytics';
-}
+} 

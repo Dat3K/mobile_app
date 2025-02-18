@@ -37,8 +37,7 @@ class CookieService {
     
     return PersistCookieJar(
       storage: FileStorage("$appDocPath/$_cookiePath/"),
-      ignoreExpires: true,
-      persistSession: true
+
     );
   }
 

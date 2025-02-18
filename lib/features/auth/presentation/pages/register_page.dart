@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_app/core/constants/app_routes.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
 import '../../domain/value_objects/user_role.dart';
 import '../providers/auth_provider.dart';
 
@@ -29,7 +29,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       }
       
       if (next.user != null) {
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
+        Navigator.pushReplacementNamed(context, RoutePaths.login);
       }
     });
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_app/core/constants/app_routes.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
 
 class StudentScaffold extends StatelessWidget {
   final Widget child;
@@ -47,29 +47,29 @@ class StudentScaffold extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('${AppRoutes.student}/courses')) return 1;
-    if (location.startsWith('${AppRoutes.student}/assignments')) return 2;
-    if (location.startsWith('${AppRoutes.student}/grades')) return 3;
-    if (location.startsWith('${AppRoutes.student}/events')) return 4;
+    if (location.startsWith('${RoutePaths.student}/courses')) return 1;
+    if (location.startsWith('${RoutePaths.student}/assignments')) return 2;
+    if (location.startsWith('${RoutePaths.student}/grades')) return 3;
+    if (location.startsWith('${RoutePaths.student}/events')) return 4;
     return 0; // Home page
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go(AppRoutes.student);
+        context.go(RoutePaths.student);
         break;
       case 1:
-        context.go('${AppRoutes.student}/courses');
+        context.go('${RoutePaths.student}/courses');
         break;
       case 2:
-        context.go('${AppRoutes.student}/assignments');
+        context.go('${RoutePaths.student}/assignments');
         break;
       case 3:
-        context.go('${AppRoutes.student}/grades');
+        context.go('${RoutePaths.student}/grades');
         break;
       case 4:
-        context.go('${AppRoutes.student}/events');
+        context.go('${RoutePaths.student}/events');
         break;
     }
   }
