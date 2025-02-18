@@ -1,16 +1,25 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobile_app/core/utils/logger.dart';
+import 'package:mobile_app/core/storage/cookie_storage.dart';
+import 'package:mobile_app/core/storage/secure_storage.dart';
+import 'package:mobile_app/core/security/csrf_token_service.dart';
 
 /// Service để quản lý cookie trong ứng dụng
 class CookieService {
   final LoggerService _logger;
+  final SecureStorageService _secureStorage;
+  final CsrfTokenService _csrfTokenService;
   CookieManager? _cookieManager;
-  static const String _cookiePath = '.cookies';
 
-  CookieService({required LoggerService logger}) : _logger = logger;
+  CookieService({
+    required LoggerService logger,
+    required SecureStorageService secureStorage,
+    required CsrfTokenService csrfTokenService,
+  })  : _logger = logger,
+        _secureStorage = secureStorage,
+        _csrfTokenService = csrfTokenService;
 
   /// Khởi tạo cookie manager
   Future<CookieManager?> init() async {
@@ -30,14 +39,14 @@ class CookieService {
     }
   }
 
-  /// Tạo cookie jar phù hợp với platform
+  /// Tạo cookie jar với SecureCookieStorage
   Future<CookieJar> _createCookieJar() async {
-    final appDocDir = await getApplicationDocumentsDirectory();
-    final appDocPath = appDocDir.path;
+    final storage = SecureCookieStorage(_secureStorage);
     
     return PersistCookieJar(
-      storage: FileStorage("$appDocPath/$_cookiePath/"),
-
+      storage: storage,
+      ignoreExpires: true,
+      persistSession: true
     );
   }
 
@@ -48,6 +57,18 @@ class CookieService {
       _logger.d('Đã xóa tất cả cookie');
     } catch (e) {
       _logger.e('Lỗi khi xóa cookie: $e');
+    }
+  }
+
+  /// Xóa tất cả dữ liệu bao gồm cookie và CSRF token
+  Future<void> clearAllData() async {
+    try {
+      await clearCookies();
+      await _csrfTokenService.deleteToken();
+      _logger.d('Đã xóa tất cả cookie và CSRF token');
+    } catch (e) {
+      _logger.e('Lỗi khi xóa dữ liệu: $e');
+      rethrow;
     }
   }
 

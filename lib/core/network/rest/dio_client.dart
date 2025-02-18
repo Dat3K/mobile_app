@@ -2,29 +2,32 @@ import 'package:dio/dio.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/utils/logger.dart';
-import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
 import 'dart:io' show Cookie;
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mobile_app/core/security/csrf_token_service.dart';
 
 /// HTTP client sử dụng Dio với đầy đủ interceptor và cấu hình
 class DioClient implements IRestClient {
   final Dio _dio;
   final LoggerService _logger;
-  final SecureStorageService _storage;
   final CookieService _cookieService;
+  final CsrfTokenService _csrfTokenService;
   late final CsrfInterceptor _csrfInterceptor;
 
   DioClient(
-    this._dio, {
+    {
+      required Dio dio,
     required LoggerService logger,
-    required SecureStorageService storage,
     required CookieService cookieService,
-  })  : _logger = logger,
-        _storage = storage,
-        _cookieService = cookieService {
+    required CsrfTokenService csrfTokenService,
+  })  :
+        _dio = dio,
+    _logger = logger,
+        _cookieService = cookieService,
+        _csrfTokenService = csrfTokenService {
     _initDio();
   }
 
@@ -42,7 +45,7 @@ class DioClient implements IRestClient {
     }
 
     // Thêm CSRF interceptor
-    _csrfInterceptor = CsrfInterceptor(_dio, _storage);
+    _csrfInterceptor = CsrfInterceptor(_dio, _csrfTokenService, _cookieService);
     _dio.interceptors.add(_csrfInterceptor);
 
     _dio.interceptors.add(
@@ -58,11 +61,8 @@ class DioClient implements IRestClient {
 
     // Khởi tạo CSRF token
     try {
-      // clear token
-      await _storage.delete("XSRF-TOKEN");
-      // clear cookie
+      await _csrfTokenService.deleteToken();
       await _cookieService.clearCookies();
-      // init token
       await _csrfInterceptor.initCsrfToken();
       _logger.d('CSRF token initialized successfully');
     } catch (e) {

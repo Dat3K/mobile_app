@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/providers/cookie_providers.dart';
 import 'package:mobile_app/core/providers/navigation_providers.dart';
 import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
@@ -11,6 +13,18 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
+
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AuthState>((ref) {
+  return AuthController(
+    loginUseCase: ref.watch(loginUseCaseProvider),
+    logoutUseCase: ref.watch(logoutUseCaseProvider),
+    registerUseCase: ref.watch(registerUseCaseProvider),
+    getCurrentUserUseCase: ref.watch(getCurrentUserUseCaseProvider),
+    navigationService: ref.watch(navigationServiceProvider),
+    cookieService: ref.watch(cookieServiceProvider),
+  );
+});
 
 class AuthState {
   final bool isLoading;
@@ -42,6 +56,7 @@ class AuthController extends StateNotifier<AuthState> {
   final RegisterUseCase _registerUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final NavigationService _navigationService;
+  final CookieService _cookieService;
 
   AuthController({
     required LoginUseCase loginUseCase,
@@ -49,11 +64,13 @@ class AuthController extends StateNotifier<AuthState> {
     required RegisterUseCase registerUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
     required NavigationService navigationService,
+    required CookieService cookieService,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
         _registerUseCase = registerUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _navigationService = navigationService,
+        _cookieService = cookieService,
         super(const AuthState()) {
     getCurrentUser();
   }
@@ -158,32 +175,33 @@ class AuthController extends StateNotifier<AuthState> {
     
     state = state.copyWith(isLoading: true, failure: null);
     
-    final result = await _logoutUseCase(NoParams());
-    
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        failure: failure,
-      ),
-      (_) {
-        state = state.copyWith(
+    try {
+      // Xóa cookie và CSRF token trước
+      await _cookieService.clearAllData();
+      
+      // Sau đó gọi API logout
+      final result = await _logoutUseCase(NoParams());
+      
+      result.fold(
+        (failure) => state = state.copyWith(
           isLoading: false,
-          user: null,
-          failure: null,
-        );
-        _navigationService.replace(RoutePaths.login);
-      },
-    );
+          failure: failure,
+        ),
+        (_) {
+          state = state.copyWith(
+            isLoading: false,
+            user: null,
+            failure: null,
+          );
+          _navigationService.replace(RoutePaths.login);
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        failure: UnexpectedFailure('Lỗi khi đăng xuất: $e'),
+      );
+    }
   }
 }
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((ref) {
-  return AuthController(
-    loginUseCase: ref.watch(loginUseCaseProvider),
-    logoutUseCase: ref.watch(logoutUseCaseProvider),
-    registerUseCase: ref.watch(registerUseCaseProvider),
-    getCurrentUserUseCase: ref.watch(getCurrentUserUseCaseProvider),
-    navigationService: ref.watch(navigationServiceProvider),
-  );
-});
