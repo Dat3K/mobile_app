@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/rest/cookie_service.dart';
 import '../../../../core/storage/secure_storage.dart';
+import '../../../../core/security/csrf_token_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/value_objects/user_role.dart';
@@ -13,16 +14,19 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthLocalDataSource _localDataSource;
   final CookieService _cookieService;
   final SecureStorageService _secureStorage;
+  final CsrfTokenService _csrfTokenService;
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
     required CookieService cookieService,
     required SecureStorageService secureStorage,
+    required CsrfTokenService csrfTokenService,
   })  : _remoteDataSource = remoteDataSource,
         _localDataSource = localDataSource,
         _cookieService = cookieService,
-        _secureStorage = secureStorage;
+        _secureStorage = secureStorage,
+        _csrfTokenService = csrfTokenService;
 
   @override
   Future<Either<Failure, AuthResult>> login(
@@ -62,14 +66,19 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      // 1. Gọi API logout
+      // 1. Xóa CSRF token và cookies trước
+      await Future.wait([
+        _csrfTokenService.deleteToken(),
+        _cookieService.clearCookies(),
+      ]);
+
+      // 2. Gọi API logout
       await _remoteDataSource.logout();
       
-      // 2. Xóa dữ liệu local
+      // 3. Xóa dữ liệu local
       await Future.wait([
         _localDataSource.clearUser(),
-        _cookieService.clearCookies(),
-        _secureStorage.deleteAll(), // Xóa tất cả tokens trong secure storage
+        _secureStorage.deleteAll(),
       ]);
       
       return const Right(null);
@@ -80,6 +89,7 @@ class AuthRepositoryImpl implements AuthRepository {
           _localDataSource.clearUser(),
           _cookieService.clearCookies(),
           _secureStorage.deleteAll(),
+          _csrfTokenService.deleteToken(),
         ]);
       } catch (e) {
         // Ignore local storage errors
