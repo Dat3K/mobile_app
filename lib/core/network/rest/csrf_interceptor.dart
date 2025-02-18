@@ -1,151 +1,177 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/constants/csrf_constants.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/network/rest/dio_client.dart';
 import 'package:mobile_app/core/security/csrf_token_service.dart';
-import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
+import 'dart:io' show Cookie;
 
-
-final csrfTokenServiceProvider = Provider<CsrfTokenService>((ref) {
-  return CsrfTokenService(
-    storage: ref.watch(secureStorageServiceProvider),
+/// Provider cho CSRF interceptor
+final csrfInterceptorProvider = Provider<CsrfInterceptor>((ref) {
+  return CsrfInterceptor(
+    dio: ref.watch(dioProvider),
+    csrfTokenService: ref.watch(csrfTokenServiceProvider),
+    cookieService: ref.watch(cookieServiceProvider),
     logger: ref.watch(loggerServiceProvider),
   );
 });
 
+/// Interceptor để xử lý CSRF token trong các request
 class CsrfInterceptor extends Interceptor {
-  /// Service để quản lý CSRF token
-  final CsrfTokenService _csrfTokenService;
-
-  /// Service để quản lý cookie
-  final CookieService _cookieService;
-
-  /// Dio client để gọi API lấy token
   final Dio _dio;
+  final CsrfTokenService _csrfTokenService;
+  final CookieService _cookieService;
+  final LoggerService _logger;
 
-  /// Key của header chứa CSRF token
-  static const String _csrfHeaderKey = 'X-XSRF-TOKEN';
-
-  /// Endpoint để lấy CSRF token
-  static const String _csrfEndpoint = '/csrf-token';
-
-  /// Error message khi CSRF token không hợp lệ
-  static const String _invalidCsrfMessage = 'Invalid_CsrfToken';
-  static const String _invalidCookieMessage = 'Invalid_CsrfCookie';
-
-  /// Constructor
-  CsrfInterceptor(this._dio, this._csrfTokenService, this._cookieService);
-
-  /// Khởi tạo CSRF token nếu chưa có
-  Future<void> initCsrfToken() async {
-    final hasToken = await _csrfTokenService.hasToken();
-    if (!hasToken) {
-      await _fetchAndSaveToken();
-    }
-  }
+  CsrfInterceptor({
+    required Dio dio,
+    required CsrfTokenService csrfTokenService,
+    required CookieService cookieService,
+    required LoggerService logger,
+  })  : _dio = dio,
+        _csrfTokenService = csrfTokenService,
+        _cookieService = cookieService,
+        _logger = logger;
 
   @override
-  void onRequest(
-    RequestOptions options,
-    RequestInterceptorHandler handler,
-  ) async {
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     try {
-      String? token = await _csrfTokenService.getToken();
+      if (_shouldSkipCsrf(options)) {
+        return handler.next(options);
+      }
 
-      // Nếu chưa có token và không phải là request lấy token
-      if (token == null && !_isCsrfRequest(options.path)) {
+      String? token = await _csrfTokenService.getToken();
+      _logger.d('Current CSRF token: ${token ?? 'null'}');
+
+      if (token == null) {
+        _logger.d('No CSRF token found, fetching new one');
         await _fetchAndSaveToken();
         token = await _csrfTokenService.getToken();
       }
 
-      // Thêm token vào header và body nếu có
       if (token != null) {
-        _addTokenToHeader(options, token);
+        options.headers[CsrfConstants.csrfHeaderKey] = token;
+        _logger.d('Added CSRF token to request headers');
       }
 
       handler.next(options);
-    } catch (e) {
-      // Nếu có lỗi, vẫn cho phép request tiếp tục
-      handler.next(options);
+    } catch (e, stackTrace) {
+      _logger.e('Error in CSRF request interceptor', e, stackTrace);
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          error: 'Lỗi khi xử lý CSRF token: $e',
+        ),
+      );
     }
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
-    if (_isInvalidCsrfResponse(response)) {
-      // Lấy request gốc
-      final originalRequest = response.requestOptions;
-
-      try {
-        // Lấy CSRF token mới
-        await _fetchAndSaveToken();
-        final newToken = await _csrfTokenService.getToken();
-
-        if (newToken != null) {
-          // Cập nhật token trong request
-          _addTokenToHeader(originalRequest, newToken);
-
-          // Thử lại request với token mới
-          final retryResponse = await _dio.fetch(originalRequest);
-          return handler.next(retryResponse);
-        }
-      } catch (e) {
-        // Nếu có lỗi khi lấy token mới, trả về response gốc
-        return handler.next(response);
-      }
+    if (!_isInvalidCsrfResponse(response)) {
+      return handler.next(response);
     }
 
-    return handler.next(response);
+    final retryCount = response.requestOptions.extra['csrfRetryCount'] as int? ?? 0;
+    _logger.d('CSRF token invalid, retry attempt: $retryCount');
+
+    if (retryCount >= CsrfConstants.maxRetries) {
+      _logger.e('Maximum CSRF retry attempts reached');
+      return handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          error: 'Đã vượt quá số lần thử lại tối đa cho CSRF token',
+        ),
+      );
+    }
+
+    try {
+      await _handleTokenRefresh(response, handler, retryCount);
+    } catch (e, stackTrace) {
+      _logger.e('Error refreshing CSRF token', e, stackTrace);
+      handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          error: 'Lỗi khi làm mới CSRF token: $e',
+        ),
+      );
+    }
   }
 
-  /// Thêm token vào header của request
-  void _addTokenToHeader(RequestOptions options, String token) {
-    options.headers[_csrfHeaderKey] = token;
+  Future<void> _handleTokenRefresh(
+    Response response,
+    ResponseInterceptorHandler handler,
+    int retryCount,
+  ) async {
+    final originalRequest = response.requestOptions;
+    originalRequest.extra['csrfRetryCount'] = retryCount + 1;
+
+    await _fetchAndSaveToken();
+    final newToken = await _csrfTokenService.getToken();
+
+    if (newToken != null) {
+      originalRequest.headers[CsrfConstants.csrfHeaderKey] = newToken;
+      _logger.d('Retrying request with new CSRF token');
+      final retryResponse = await _dio.fetch(originalRequest);
+      handler.next(retryResponse);
+    } else {
+      throw Exception('Không thể lấy token mới sau khi refresh');
+    }
   }
 
-  /// Kiểm tra xem có phải là request lấy CSRF token không
-  bool _isCsrfRequest(String path) {
-    return path.contains(_csrfEndpoint);
-  }
-
-  /// Lấy và lưu CSRF token mới
   Future<void> _fetchAndSaveToken() async {
     try {
-      final response = await _dio.get(_csrfEndpoint);
-      final token = _extractTokenFromResponse(response.data);
+      _logger.d('Fetching new CSRF token');
+      final response = await _dio.get(CsrfConstants.csrfEndpoint);
+      
+      if (response.data is! Map<String, dynamic>) {
+        throw Exception('Invalid response format');
+      }
+
+      final token = response.data['token'] as String?;
+      if (token == null) {
+        throw Exception('CSRF token not found in response');
+      }
+
       await _csrfTokenService.saveToken(token);
-    } catch (e) {
-      rethrow;
+      _logger.d('New CSRF token saved');
+
+      await _handleCsrfCookie(response);
+    } catch (e, stackTrace) {
+      _logger.e('Error fetching new CSRF token', e, stackTrace);
+      throw Exception('Không thể lấy CSRF token mới: $e');
     }
   }
 
-  /// Trích xuất token từ response data
-  String _extractTokenFromResponse(dynamic responseData) {
-    if (responseData is! Map<String, dynamic>) {
-      throw Exception('Invalid response format: expected Map with token');
+  Future<void> _handleCsrfCookie(Response response) async {
+    final cookies = response.headers['set-cookie'];
+    if (cookies != null) {
+      for (final cookieStr in cookies) {
+        if (cookieStr.contains(CsrfConstants.cookieName)) {
+          await _cookieService.saveCookie(
+            _dio.options.baseUrl,
+            Cookie.fromSetCookieValue(cookieStr),
+          );
+          _logger.d('CSRF cookie saved');
+          break;
+        }
+      }
     }
-
-    final token = responseData['token'] as String?;
-    if (token == null) {
-      throw Exception('CSRF token not found in response');
-    }
-
-    return token;
   }
 
-  /// Kiểm tra xem response có phải là lỗi CSRF không
   bool _isInvalidCsrfResponse(Response response) {
-    try {
-      if (response.statusCode != 403) return false;
-      
-      final data = response.data;
-      if (data is! Map<String, dynamic>) return false;
-      
-      final message = data['message']?.toString() ?? '';
-      return message.contains(_invalidCsrfMessage) || 
-             message.contains(_invalidCookieMessage);
-    } catch (e) {
+    if (response.statusCode != 403 || response.data is! Map<String, dynamic>) {
       return false;
     }
+    
+    final message = response.data['message']?.toString() ?? '';
+    return message.contains(CsrfConstants.invalidCsrfMessage) || 
+           message.contains(CsrfConstants.invalidCookieMessage);
+  }
+
+  bool _shouldSkipCsrf(RequestOptions options) {
+    return options.path.contains(CsrfConstants.csrfEndpoint) ||
+           options.method.toUpperCase() == 'GET';
   }
 }

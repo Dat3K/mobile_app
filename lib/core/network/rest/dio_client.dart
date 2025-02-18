@@ -5,15 +5,68 @@ import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
-import 'dart:io' show Cookie;
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobile_app/core/security/csrf_token_service.dart';
 
-// Provider cho Dio instance
+/// Provider cho cache options
+final cacheOptionsProvider = Provider<CacheOptions>((ref) {
+  return CacheOptions(
+    store: MemCacheStore(),
+    policy: CachePolicy.request,
+    hitCacheOnErrorExcept: [401, 403],
+    maxStale: const Duration(days: 1),
+    priority: CachePriority.normal,
+    keyBuilder: CacheOptions.defaultCacheKeyBuilder,
+    allowPostMethod: false,
+  );
+});
+
+/// Provider cho Dio client
 final dioProvider = Provider<Dio>((ref) {
-  return Dio();
-}); 
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: AppConstants.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+      validateStatus: (status) => status != null && status < 500,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    ),
+  );
+
+  // Thêm các interceptors
+  if (kDebugMode) {
+    dio.interceptors.add(LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+    ));
+  }
+
+  // Thêm retry interceptor
+  dio.interceptors.add(RetryInterceptor(
+    dio: dio,
+    logPrint: (message) => debugPrint(message),
+    retries: 3,
+    retryDelays: const [
+      Duration(seconds: 1),
+      Duration(seconds: 2),
+      Duration(seconds: 3),
+    ],
+  ));
+
+  // Thêm cache interceptor
+  dio.interceptors.add(DioCacheInterceptor(
+    options: ref.read(cacheOptionsProvider),
+  ));
+
+  return dio;
+});
 
 // Provider cho DioClient
 final dioClientProvider = Provider<DioClient>((ref) {
@@ -21,7 +74,11 @@ final dioClientProvider = Provider<DioClient>((ref) {
   final logger = ref.watch(loggerServiceProvider);
   final cookieService = ref.watch(cookieServiceProvider);
   final csrfTokenService = ref.watch(csrfTokenServiceProvider);
-  return DioClient(dio: dio, logger: logger, cookieService: cookieService, csrfTokenService: csrfTokenService);
+  return DioClient(
+      dio: dio,
+      logger: logger,
+      cookieService: cookieService,
+      csrfTokenService: csrfTokenService);
 });
 
 /// HTTP client sử dụng Dio với đầy đủ interceptor và cấu hình
@@ -31,27 +88,21 @@ class DioClient implements IRestClient {
   final CookieService _cookieService;
   final CsrfTokenService _csrfTokenService;
   late final CsrfInterceptor _csrfInterceptor;
+  final _cancelTokens = <CancelToken>[];
 
-  DioClient(
-    {
-      required Dio dio,
+  DioClient({
+    required Dio dio,
     required LoggerService logger,
     required CookieService cookieService,
     required CsrfTokenService csrfTokenService,
-  })  :
-        _dio = dio,
-    _logger = logger,
+  })  : _dio = dio,
+        _logger = logger,
         _cookieService = cookieService,
         _csrfTokenService = csrfTokenService {
     _initDio();
   }
 
   Future<void> _initDio() async {
-    _dio.options.baseUrl = AppConstants.apiBaseUrl;
-    _dio.options.connectTimeout = const Duration(seconds: 30);
-    _dio.options.receiveTimeout = const Duration(seconds: 30);
-    _dio.options.validateStatus = (status) => status! < 500;
-
     // Cấu hình đặc biệt cho web
     if (kIsWeb) {
       _configureForWeb();
@@ -60,37 +111,21 @@ class DioClient implements IRestClient {
     }
 
     // Thêm CSRF interceptor
-    _csrfInterceptor = CsrfInterceptor(_dio, _csrfTokenService, _cookieService);
-    _dio.interceptors.add(_csrfInterceptor);
-
-    _dio.interceptors.add(
-      LogInterceptor(
-        error: true,
-        requestBody: true,
-        responseBody: true,
-        requestHeader: true,
-        responseHeader: true,
-        request: true,
-      ),
+    _csrfInterceptor = CsrfInterceptor(
+      dio: _dio,
+      csrfTokenService: _csrfTokenService,
+      cookieService: _cookieService,
+      logger: _logger,
     );
+    _dio.interceptors.add(_csrfInterceptor);
 
     // Khởi tạo CSRF token
     try {
       await _csrfTokenService.deleteToken();
       await _cookieService.clearCookies();
-      await _csrfInterceptor.initCsrfToken();
       _logger.d('CSRF token initialized successfully');
     } catch (e) {
       _logger.e('Failed to initialize CSRF token: $e');
-    }
-
-    // Lấy cookies
-    try {
-      // clear cookies
-      final cookies = await _cookieService.getCookies(AppConstants.apiBaseUrl);
-      _logger.d('Cookies: $cookies');
-    } catch (e) {
-      _logger.e('Failed to get cookies: $e');
     }
   }
 
@@ -99,10 +134,8 @@ class DioClient implements IRestClient {
     _dio.options.extra = {
       'withCredentials': true,
     };
-    
+
     _dio.options.headers.addAll({
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
       'Access-Control-Allow-Credentials': 'true',
     });
 
@@ -118,55 +151,61 @@ class DioClient implements IRestClient {
     }
   }
 
+  /// Hủy tất cả các request đang chạy
+  void cancelAllRequests([String? reason]) {
+    for (var token in _cancelTokens) {
+      if (!token.isCancelled) {
+        token.cancel(reason);
+      }
+    }
+    _cancelTokens.clear();
+  }
+
   /// Xóa tất cả cookies
   Future<void> clearCookies() async {
     await _cookieService.clearCookies();
   }
 
-  /// Lấy danh sách cookies cho domain
-  Future<List<Cookie>> getCookies(String domain) async {
-    return _cookieService.getCookies(domain);
-  }
+  /// Xử lý lỗi từ Dio Exception
+  Future<Never> _handleError(DioException e) async {
+    _logger.e('DioError: ${e.message}');
 
-  Future<Response> _handleError(DioException e) async {
-    if (e.type == DioExceptionType.connectionTimeout ||
-        e.type == DioExceptionType.receiveTimeout ||
-        e.type == DioExceptionType.sendTimeout) {
-      throw TimeoutFailure(e.message.toString());
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.receiveTimeout:
+      case DioExceptionType.sendTimeout:
+        throw TimeoutFailure(e.message ?? 'Request timeout');
+
+      case DioExceptionType.connectionError:
+        throw NetworkFailure(e.message ?? 'Network connection error');
+
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        if (statusCode != null) {
+          if (statusCode >= 500) {
+            throw ServerFailure(e.response?.data?['message'] ?? 'Server error');
+          } else if (statusCode == 401) {
+            throw UnauthorizedFailure(
+                e.response?.data?['message'] ?? 'Unauthorized');
+          } else if (statusCode == 403) {
+            throw ForbiddenFailure(
+                e.response?.data?['message'] ?? 'Access forbidden');
+          } else if (statusCode == 404) {
+            throw NotFoundFailure(
+                e.response?.data?['message'] ?? 'Resource not found');
+          }
+        }
+        throw BadResponseFailure(e.message ?? 'Bad response');
+
+      case DioExceptionType.cancel:
+        throw CancelFailure(e.message ?? 'Request cancelled');
+
+      case DioExceptionType.badCertificate:
+        throw BadCertificateFailure(e.message ?? 'Bad certificate');
+
+      default:
+        throw ServerFailure(e.message ?? 'Unknown error occurred');
     }
-
-    if (e.type == DioExceptionType.connectionError) {
-      throw NetworkFailure(e.message.toString());
-    }
-
-    if (e.response?.statusCode != null) {
-      final statusCode = e.response!.statusCode!;
-      if (statusCode >= 500 && statusCode < 600) {
-        throw ServerFailure(e.message.toString());
-      } else if (statusCode == 401) {
-        throw UnauthorizedFailure(e.message.toString());
-      } else if (statusCode == 403) {
-        throw ForbiddenFailure(e.message.toString());
-      } else if (statusCode == 404) {
-        throw NotFoundFailure(e.message.toString());
-      } else {
-        throw ServerFailure(e.message.toString());
-      }
-    }
-
-    if (e.type == DioExceptionType.cancel) {
-      throw CancelFailure(e.message.toString());
-    }
-
-    if (e.type == DioExceptionType.badResponse) {
-      throw BadResponseFailure(e.message.toString());
-    }
-
-    if (e.type == DioExceptionType.badCertificate) {
-      throw BadCertificateFailure(e.message.toString());
-    }
-
-    throw ServerFailure(e.message.toString());
   }
 
   @override
@@ -174,18 +213,29 @@ class DioClient implements IRestClient {
     String path, {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
+    bool forceRefresh = false,
   }) async {
     try {
+      final cancelToken = CancelToken();
+      _cancelTokens.add(cancelToken);
+
       final response = await _dio.get<T>(
         path,
         queryParameters: queryParameters,
-        options: Options(headers: headers),
+        options: Options(
+          headers: headers,
+          extra: forceRefresh
+              ? {
+                  'dio_cache_interceptor_force_refresh': true,
+                }
+              : null,
+        ),
+        cancelToken: cancelToken,
       );
 
+      _cancelTokens.remove(cancelToken);
+
       if (response.data == null) {
-        if (T.toString() == 'void' || T.toString() == 'dynamic') {
-          return null as T;
-        }
         throw ServerFailure('Response data is null');
       }
 
@@ -203,17 +253,20 @@ class DioClient implements IRestClient {
     Map<String, String>? headers,
   }) async {
     try {
+      final cancelToken = CancelToken();
+      _cancelTokens.add(cancelToken);
+
       final response = await _dio.post<T>(
         path,
         data: data,
         queryParameters: queryParameters,
         options: Options(headers: headers),
+        cancelToken: cancelToken,
       );
 
+      _cancelTokens.remove(cancelToken);
+
       if (response.data == null) {
-        if (T.toString() == 'void' || T.toString() == 'dynamic') {
-          return null as T;
-        }
         throw ServerFailure('Response data is null');
       }
 
@@ -231,17 +284,20 @@ class DioClient implements IRestClient {
     Map<String, String>? headers,
   }) async {
     try {
+      final cancelToken = CancelToken();
+      _cancelTokens.add(cancelToken);
+
       final response = await _dio.put<T>(
         path,
         data: data,
         queryParameters: queryParameters,
         options: Options(headers: headers),
+        cancelToken: cancelToken,
       );
 
+      _cancelTokens.remove(cancelToken);
+
       if (response.data == null) {
-        if (T.toString() == 'void' || T.toString() == 'dynamic') {
-          return null as T;
-        }
         throw ServerFailure('Response data is null');
       }
 
@@ -258,14 +314,31 @@ class DioClient implements IRestClient {
     Map<String, String>? headers,
   }) async {
     try {
+      final cancelToken = CancelToken();
+      _cancelTokens.add(cancelToken);
+
       final response = await _dio.delete<T>(
         path,
         queryParameters: queryParameters,
         options: Options(headers: headers),
+        cancelToken: cancelToken,
       );
+
+      _cancelTokens.remove(cancelToken);
+
+      if (response.data == null) {
+        throw ServerFailure('Response data is null');
+      }
+
       return response.data as T;
     } on DioException catch (e) {
       throw await _handleError(e);
     }
+  }
+
+  /// Dispose client
+  void dispose() {
+    cancelAllRequests('Client disposed');
+    _dio.close(force: true);
   }
 }

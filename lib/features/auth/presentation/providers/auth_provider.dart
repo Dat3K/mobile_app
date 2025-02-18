@@ -174,17 +174,22 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, failure: null);
     
     try {
-      // Xóa cookie và CSRF token trước
-      await _cookieService.clearAllData();
+      await _cookieService.clearCookies();
       
-      // Sau đó gọi API logout
       final result = await _logoutUseCase(NoParams());
       
       result.fold(
-        (failure) => state = state.copyWith(
-          isLoading: false,
-          failure: failure,
-        ),
+        (failure) {
+          state = state.copyWith(
+            isLoading: false,
+            failure: failure,
+          );
+          
+          if (failure is UnauthorizedFailure || failure is ForbiddenFailure) {
+            state = state.copyWith(user: null);
+            _navigationService.replace(RoutePaths.login);
+          }
+        },
         (_) {
           state = state.copyWith(
             isLoading: false,

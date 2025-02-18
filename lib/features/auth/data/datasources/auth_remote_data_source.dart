@@ -37,6 +37,7 @@ abstract class AuthRemoteDataSource {
   Future<AuthResponse> register(
       String email, String password, String fullName, UserRole role);
   Future<void> forgotPassword(String email);
+  Future<void> logout();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -86,6 +87,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await _client.post<void>('/auth/forgot-password', data: {
         'email': email,
       });
+    } on HttpError catch (e) {
+      throw ServerFailure(e.message);
+    } catch (e) {
+      throw ServerFailure(e.toString());
+    }
+  }
+
+  @override
+  Future<void> logout() async {
+    try {
+      await _client.post<void>('/logout');
     } on HttpError catch (e) {
       throw ServerFailure(e.message);
     } catch (e) {

@@ -1,8 +1,17 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 
+/// Provider cho CsrfTokenService
+final csrfTokenServiceProvider = Provider<CsrfTokenService>((ref) {
+  return CsrfTokenService(
+    storage: ref.watch(secureStorageServiceProvider),
+    logger: ref.watch(loggerServiceProvider),
+  );
+});
+
 /// Service để quản lý CSRF token
-class CsrfTokenService {
+class CsrfTokenService{
   static const String _tokenKey = 'csrf_token';
   final SecureStorageService _storage;
   final LoggerService _logger;
@@ -13,7 +22,6 @@ class CsrfTokenService {
   })  : _storage = storage,
         _logger = logger;
 
-  /// Lấy CSRF token hiện tại
   Future<String?> getToken() async {
     try {
       final token = await _storage.read(_tokenKey);
@@ -25,7 +33,6 @@ class CsrfTokenService {
     }
   }
 
-  /// Lưu CSRF token mới
   Future<void> saveToken(String token) async {
     try {
       await _storage.write(_tokenKey, token);
@@ -36,7 +43,6 @@ class CsrfTokenService {
     }
   }
 
-  /// Xóa CSRF token
   Future<void> deleteToken() async {
     try {
       await _storage.delete(_tokenKey);
@@ -47,7 +53,6 @@ class CsrfTokenService {
     }
   }
 
-  /// Kiểm tra xem có CSRF token hay không
   Future<bool> hasToken() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;

@@ -52,6 +52,8 @@ dependencies:
   dio: ^5.8.0+1
   dio_web_adapter: ^2.1.0
   dio_cookie_manager: ^3.2.0
+  dio_cache_interceptor: ^3.5.1
+  dio_smart_retry: ^7.0.1
   fresh: ^0.4.3
   fresh_dio: ^0.4.2
   connectivity_plus: ^6.1.1
