@@ -1,8 +1,5 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/network/rest/cookie_service.dart';
-import '../../../../core/storage/secure_storage.dart';
-import '../../../../core/security/csrf_token_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/value_objects/user_role.dart';
@@ -12,21 +9,12 @@ import '../datasources/auth_local_data_source.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
-  final CookieService _cookieService;
-  final SecureStorageService _secureStorage;
-  final CsrfTokenService _csrfTokenService;
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
-    required CookieService cookieService,
-    required SecureStorageService secureStorage,
-    required CsrfTokenService csrfTokenService,
   })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource,
-        _cookieService = cookieService,
-        _secureStorage = secureStorage,
-        _csrfTokenService = csrfTokenService;
+        _localDataSource = localDataSource;
 
   @override
   Future<Either<Failure, AuthResult>> login(
@@ -48,51 +36,37 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, AuthResult>> register(
       String email, String password, String fullName, UserRole role) async {
-      try {
-        final response =
-            await _remoteDataSource.register(email, password, fullName, role);
+    try {
+      final response =
+          await _remoteDataSource.register(email, password, fullName, role);
 
-        // Save session to local storage
-        await _localDataSource.saveUser(response.user);
+      // Save session to local storage
+      await _localDataSource.saveUser(response.user);
 
-        return Right(AuthResult(
-          user: response.user.toDomain(),
-        ));
-      } on Failure catch (failure) {
-        return Left(failure);
-      }
+      return Right(AuthResult(
+        user: response.user.toDomain(),
+      ));
+    } on Failure catch (failure) {
+      return Left(failure);
+    }
   }
 
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      // 1. Xóa CSRF token và cookies trước
-      await Future.wait([
-        _csrfTokenService.deleteToken(),
-        _cookieService.clearCookies(),
-      ]);
-
-      // 2. Gọi API logout
+      // 1. Call logout API first
       await _remoteDataSource.logout();
       
-      // 3. Xóa dữ liệu local
-      await Future.wait([
-        _localDataSource.clearUser(),
-        _secureStorage.deleteAll(),
-      ]);
+      // 2. Only clear local data after successful logout
+      await _localDataSource.clearAllData();
       
       return const Right(null);
     } on ServerFailure catch (failure) {
-      // Nếu lỗi server, vẫn xóa dữ liệu local
       try {
-        await Future.wait([
-          _localDataSource.clearUser(),
-          _cookieService.clearCookies(),
-          _secureStorage.deleteAll(),
-          _csrfTokenService.deleteToken(),
-        ]);
+        // Even if server logout fails, we should still clear local data
+        await _localDataSource.clearAllData();
       } catch (e) {
-        // Ignore local storage errors
+        return Left(ServerFailure(e.toString()));        
       }
       return Left(failure);
     } on Failure catch (failure) {
@@ -110,7 +84,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return Right(cachedUser.toDomain());
       }
 
-      return Left(AuthFailure('No authenticated user found'));
+      return Left(AuthFailure(''));
     } catch (e) {
       return Left(AuthFailure('Failed to get current user'));
     }

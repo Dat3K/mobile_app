@@ -50,7 +50,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<AuthResponse> login(String email, String password) async {
     try {
-      final response = await _client.post<Map<String, dynamic>>('/login', data: {
+      final response =
+          await _client.post<Map<String, dynamic>>('/login', data: {
         'email': email,
         'password': password,
       });
@@ -97,7 +98,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> logout() async {
     try {
-      await _client.post<void>('/logout');
+      await _client.post<void>('/logout', data: {});
     } on HttpError catch (e) {
       throw ServerFailure(e.message);
     } catch (e) {

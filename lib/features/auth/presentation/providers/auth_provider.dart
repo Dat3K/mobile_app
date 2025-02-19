@@ -54,7 +54,6 @@ class AuthController extends StateNotifier<AuthState> {
   final RegisterUseCase _registerUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final NavigationService _navigationService;
-  final CookieService _cookieService;
 
   AuthController({
     required LoginUseCase loginUseCase,
@@ -68,20 +67,19 @@ class AuthController extends StateNotifier<AuthState> {
         _registerUseCase = registerUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _navigationService = navigationService,
-        _cookieService = cookieService,
         super(const AuthState()) {
     getCurrentUser();
   }
 
   Future<void> getCurrentUser() async {
     state = state.copyWith(isLoading: true, failure: null);
-    
+
     final result = await _getCurrentUserUseCase(NoParams());
     result.fold(
       (failure) => state = state.copyWith(
         isLoading: false,
         user: null,
-        failure: failure,
+        failure: null,
       ),
       (user) {
         state = state.copyWith(
@@ -110,9 +108,9 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> login(String email, String password) async {
     if (state.isLoading) return;
-    
+
     state = state.copyWith(isLoading: true, failure: null);
-    
+
     final result = await _loginUseCase(
       LoginParams(email: email, password: password),
     );
@@ -141,7 +139,7 @@ class AuthController extends StateNotifier<AuthState> {
     UserRole role,
   ) async {
     state = state.copyWith(isLoading: true, failure: null);
-    
+
     final result = await _registerUseCase(
       RegisterParams(
         email: email,
@@ -170,25 +168,19 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     if (state.isLoading) return;
-    
+
     state = state.copyWith(isLoading: true, failure: null);
-    
+
     try {
-      await _cookieService.clearCookies();
-      
       final result = await _logoutUseCase(NoParams());
-      
       result.fold(
         (failure) {
           state = state.copyWith(
             isLoading: false,
             failure: failure,
           );
-          
-          if (failure is UnauthorizedFailure || failure is ForbiddenFailure) {
-            state = state.copyWith(user: null);
-            _navigationService.replace(RoutePaths.login);
-          }
+          state = state.copyWith(user: null);
+          _navigationService.replace(RoutePaths.login);
         },
         (_) {
           state = state.copyWith(
@@ -207,4 +199,3 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 }
-
