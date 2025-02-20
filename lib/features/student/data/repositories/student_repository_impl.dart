@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/graphql/base_graphql_service.dart';
 import 'package:mobile_app/features/student/data/models/student_model.dart';
-import 'package:mobile_app/features/student/domain/entities/student.dart';
+import 'package:mobile_app/features/student/domain/entities/student_entity.dart';
 import 'package:mobile_app/features/student/domain/repositories/student_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -19,12 +19,12 @@ class StudentRepositoryImpl implements IStudentRepository {
   StudentRepositoryImpl(this._graphQLService);
 
   // Helper method to get Hive box
-  Future<Box<Student>> _getBox() async {
-    return await Hive.openBox<Student>(_boxName);
+  Future<Box<StudentEntity>> _getBox() async {
+    return await Hive.openBox<StudentEntity>(_boxName);
   }
 
   @override
-  Future<Either<Failure, List<Student>>> getStudents() async {
+  Future<Either<Failure, List<StudentEntity>>> getStudents() async {
     try {
       // First try to get from local storage
       final box = await _getBox();
@@ -57,8 +57,9 @@ class StudentRepositoryImpl implements IStudentRepository {
       return result.fold(
         (failure) => Left(failure),
         (models) async {
-          final students = models.map((model) => model.toEntity()).toList();
+          final students = models.map((model) => model.toDomain()).toList();
           // Cache the results
+          final box = await _getBox();
           await box.addAll(students);
           return Right(students);
         },
@@ -69,7 +70,7 @@ class StudentRepositoryImpl implements IStudentRepository {
   }
 
   @override
-  Future<Either<Failure, Student>> getStudentById(String id) async {
+  Future<Either<Failure, StudentEntity>> getStudentById(String id) async {
     try {
       // First try to get from local storage
       final box = await _getBox();
@@ -101,8 +102,9 @@ class StudentRepositoryImpl implements IStudentRepository {
       return result.fold(
         (failure) => Left(failure),
         (model) async {
-          final student = model.toEntity();
+          final student = model.toDomain();
           // Cache the result
+          final box = await _getBox();
           await box.put(student.id, student);
           return Right(student);
         },
@@ -113,7 +115,7 @@ class StudentRepositoryImpl implements IStudentRepository {
   }
 
   @override
-  Future<Either<Failure, Student>> createStudent(Student student) async {
+  Future<Either<Failure, StudentEntity>> createStudent(StudentEntity student) async {
     if (!student.isValid) {
       return Left(StudentFailure.invalidData());
     }
@@ -130,7 +132,7 @@ class StudentRepositoryImpl implements IStudentRepository {
       }
     ''';
 
-    final model = StudentModel.fromEntity(student);
+    final model = StudentModel.fromDomain(student);
     final result = await _graphQLService.mutation<StudentModel>(
       mutation: mutation,
       variables: {'input': model.toCreateJson()},
@@ -140,7 +142,7 @@ class StudentRepositoryImpl implements IStudentRepository {
     return result.fold(
       (failure) => Left(failure),
       (model) async {
-        final newStudent = model.toEntity();
+        final newStudent = model.toDomain();
         // Cache the new student
         final box = await _getBox();
         await box.put(newStudent.id, newStudent);
@@ -150,7 +152,7 @@ class StudentRepositoryImpl implements IStudentRepository {
   }
 
   @override
-  Future<Either<Failure, Student>> updateStudent(Student student) async {
+  Future<Either<Failure, StudentEntity>> updateStudent(StudentEntity student) async {
     if (!student.canUpdate) {
       return Left(ValidationFailure.invalidValue());
     }
@@ -167,7 +169,7 @@ class StudentRepositoryImpl implements IStudentRepository {
       }
     ''';
 
-    final model = StudentModel.fromEntity(student);
+    final model = StudentModel.fromDomain(student);
     final result = await _graphQLService.mutation<StudentModel>(
       mutation: mutation,
       variables: {
@@ -180,7 +182,7 @@ class StudentRepositoryImpl implements IStudentRepository {
     return result.fold(
       (failure) => Left(failure),
       (model) async {
-        final updatedStudent = model.toEntity();
+        final updatedStudent = model.toDomain();
         // Update cache
         final box = await _getBox();
         await box.put(updatedStudent.id, updatedStudent);

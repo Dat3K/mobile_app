@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'student_model.dart';
+part of 'student_entity.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,67 +14,52 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-StudentModel _$StudentModelFromJson(Map<String, dynamic> json) {
-  return _StudentModel.fromJson(json);
-}
-
 /// @nodoc
-mixin _$StudentModel {
-  @HiveField(0)
+mixin _$StudentEntity {
   String get id => throw _privateConstructorUsedError;
-  @HiveField(1)
   String get userId => throw _privateConstructorUsedError;
-  @HiveField(2)
   String get fullName => throw _privateConstructorUsedError;
-  @HiveField(3)
   String get major => throw _privateConstructorUsedError;
-  @HiveField(4)
   int get graduationYear => throw _privateConstructorUsedError;
-  @HiveField(5)
   int get enrollmentYear => throw _privateConstructorUsedError;
-  @HiveField(6)
   List<String> get skills => throw _privateConstructorUsedError;
-  @HiveField(7)
   String? get currentEnterpriseId => throw _privateConstructorUsedError;
 
-  /// Serializes this StudentModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of StudentModel
+  /// Create a copy of StudentEntity
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $StudentModelCopyWith<StudentModel> get copyWith =>
+  $StudentEntityCopyWith<StudentEntity> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $StudentModelCopyWith<$Res> {
-  factory $StudentModelCopyWith(
-          StudentModel value, $Res Function(StudentModel) then) =
-      _$StudentModelCopyWithImpl<$Res, StudentModel>;
+abstract class $StudentEntityCopyWith<$Res> {
+  factory $StudentEntityCopyWith(
+          StudentEntity value, $Res Function(StudentEntity) then) =
+      _$StudentEntityCopyWithImpl<$Res, StudentEntity>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String userId,
-      @HiveField(2) String fullName,
-      @HiveField(3) String major,
-      @HiveField(4) int graduationYear,
-      @HiveField(5) int enrollmentYear,
-      @HiveField(6) List<String> skills,
-      @HiveField(7) String? currentEnterpriseId});
+      {String id,
+      String userId,
+      String fullName,
+      String major,
+      int graduationYear,
+      int enrollmentYear,
+      List<String> skills,
+      String? currentEnterpriseId});
 }
 
 /// @nodoc
-class _$StudentModelCopyWithImpl<$Res, $Val extends StudentModel>
-    implements $StudentModelCopyWith<$Res> {
-  _$StudentModelCopyWithImpl(this._value, this._then);
+class _$StudentEntityCopyWithImpl<$Res, $Val extends StudentEntity>
+    implements $StudentEntityCopyWith<$Res> {
+  _$StudentEntityCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of StudentModel
+  /// Create a copy of StudentEntity
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -126,33 +111,33 @@ class _$StudentModelCopyWithImpl<$Res, $Val extends StudentModel>
 }
 
 /// @nodoc
-abstract class _$$StudentModelImplCopyWith<$Res>
-    implements $StudentModelCopyWith<$Res> {
-  factory _$$StudentModelImplCopyWith(
-          _$StudentModelImpl value, $Res Function(_$StudentModelImpl) then) =
-      __$$StudentModelImplCopyWithImpl<$Res>;
+abstract class _$$StudentEntityImplCopyWith<$Res>
+    implements $StudentEntityCopyWith<$Res> {
+  factory _$$StudentEntityImplCopyWith(
+          _$StudentEntityImpl value, $Res Function(_$StudentEntityImpl) then) =
+      __$$StudentEntityImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String userId,
-      @HiveField(2) String fullName,
-      @HiveField(3) String major,
-      @HiveField(4) int graduationYear,
-      @HiveField(5) int enrollmentYear,
-      @HiveField(6) List<String> skills,
-      @HiveField(7) String? currentEnterpriseId});
+      {String id,
+      String userId,
+      String fullName,
+      String major,
+      int graduationYear,
+      int enrollmentYear,
+      List<String> skills,
+      String? currentEnterpriseId});
 }
 
 /// @nodoc
-class __$$StudentModelImplCopyWithImpl<$Res>
-    extends _$StudentModelCopyWithImpl<$Res, _$StudentModelImpl>
-    implements _$$StudentModelImplCopyWith<$Res> {
-  __$$StudentModelImplCopyWithImpl(
-      _$StudentModelImpl _value, $Res Function(_$StudentModelImpl) _then)
+class __$$StudentEntityImplCopyWithImpl<$Res>
+    extends _$StudentEntityCopyWithImpl<$Res, _$StudentEntityImpl>
+    implements _$$StudentEntityImplCopyWith<$Res> {
+  __$$StudentEntityImplCopyWithImpl(
+      _$StudentEntityImpl _value, $Res Function(_$StudentEntityImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of StudentModel
+  /// Create a copy of StudentEntity
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -166,7 +151,7 @@ class __$$StudentModelImplCopyWithImpl<$Res>
     Object? skills = null,
     Object? currentEnterpriseId = freezed,
   }) {
-    return _then(_$StudentModelImpl(
+    return _then(_$StudentEntityImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -204,44 +189,34 @@ class __$$StudentModelImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
-class _$StudentModelImpl extends _StudentModel {
-  const _$StudentModelImpl(
-      {@HiveField(0) required this.id,
-      @HiveField(1) required this.userId,
-      @HiveField(2) required this.fullName,
-      @HiveField(3) required this.major,
-      @HiveField(4) required this.graduationYear,
-      @HiveField(5) required this.enrollmentYear,
-      @HiveField(6) required final List<String> skills,
-      @HiveField(7) this.currentEnterpriseId})
+
+class _$StudentEntityImpl extends _StudentEntity {
+  const _$StudentEntityImpl(
+      {required this.id,
+      required this.userId,
+      required this.fullName,
+      required this.major,
+      required this.graduationYear,
+      required this.enrollmentYear,
+      required final List<String> skills,
+      this.currentEnterpriseId})
       : _skills = skills,
         super._();
 
-  factory _$StudentModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$StudentModelImplFromJson(json);
-
   @override
-  @HiveField(0)
   final String id;
   @override
-  @HiveField(1)
   final String userId;
   @override
-  @HiveField(2)
   final String fullName;
   @override
-  @HiveField(3)
   final String major;
   @override
-  @HiveField(4)
   final int graduationYear;
   @override
-  @HiveField(5)
   final int enrollmentYear;
   final List<String> _skills;
   @override
-  @HiveField(6)
   List<String> get skills {
     if (_skills is EqualUnmodifiableListView) return _skills;
     // ignore: implicit_dynamic_type
@@ -249,19 +224,18 @@ class _$StudentModelImpl extends _StudentModel {
   }
 
   @override
-  @HiveField(7)
   final String? currentEnterpriseId;
 
   @override
   String toString() {
-    return 'StudentModel(id: $id, userId: $userId, fullName: $fullName, major: $major, graduationYear: $graduationYear, enrollmentYear: $enrollmentYear, skills: $skills, currentEnterpriseId: $currentEnterpriseId)';
+    return 'StudentEntity(id: $id, userId: $userId, fullName: $fullName, major: $major, graduationYear: $graduationYear, enrollmentYear: $enrollmentYear, skills: $skills, currentEnterpriseId: $currentEnterpriseId)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$StudentModelImpl &&
+            other is _$StudentEntityImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.fullName, fullName) ||
@@ -276,7 +250,6 @@ class _$StudentModelImpl extends _StudentModel {
                 other.currentEnterpriseId == currentEnterpriseId));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -289,66 +262,48 @@ class _$StudentModelImpl extends _StudentModel {
       const DeepCollectionEquality().hash(_skills),
       currentEnterpriseId);
 
-  /// Create a copy of StudentModel
+  /// Create a copy of StudentEntity
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$StudentModelImplCopyWith<_$StudentModelImpl> get copyWith =>
-      __$$StudentModelImplCopyWithImpl<_$StudentModelImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$StudentModelImplToJson(
-      this,
-    );
-  }
+  _$$StudentEntityImplCopyWith<_$StudentEntityImpl> get copyWith =>
+      __$$StudentEntityImplCopyWithImpl<_$StudentEntityImpl>(this, _$identity);
 }
 
-abstract class _StudentModel extends StudentModel {
-  const factory _StudentModel(
-      {@HiveField(0) required final String id,
-      @HiveField(1) required final String userId,
-      @HiveField(2) required final String fullName,
-      @HiveField(3) required final String major,
-      @HiveField(4) required final int graduationYear,
-      @HiveField(5) required final int enrollmentYear,
-      @HiveField(6) required final List<String> skills,
-      @HiveField(7) final String? currentEnterpriseId}) = _$StudentModelImpl;
-  const _StudentModel._() : super._();
-
-  factory _StudentModel.fromJson(Map<String, dynamic> json) =
-      _$StudentModelImpl.fromJson;
+abstract class _StudentEntity extends StudentEntity {
+  const factory _StudentEntity(
+      {required final String id,
+      required final String userId,
+      required final String fullName,
+      required final String major,
+      required final int graduationYear,
+      required final int enrollmentYear,
+      required final List<String> skills,
+      final String? currentEnterpriseId}) = _$StudentEntityImpl;
+  const _StudentEntity._() : super._();
 
   @override
-  @HiveField(0)
   String get id;
   @override
-  @HiveField(1)
   String get userId;
   @override
-  @HiveField(2)
   String get fullName;
   @override
-  @HiveField(3)
   String get major;
   @override
-  @HiveField(4)
   int get graduationYear;
   @override
-  @HiveField(5)
   int get enrollmentYear;
   @override
-  @HiveField(6)
   List<String> get skills;
   @override
-  @HiveField(7)
   String? get currentEnterpriseId;
 
-  /// Create a copy of StudentModel
+  /// Create a copy of StudentEntity
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$StudentModelImplCopyWith<_$StudentModelImpl> get copyWith =>
+  _$$StudentEntityImplCopyWith<_$StudentEntityImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

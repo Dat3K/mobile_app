@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/features/student/data/repositories/student_repository_impl.dart';
-import 'package:mobile_app/features/student/domain/entities/student.dart';
+import 'package:mobile_app/features/student/domain/entities/student_entity.dart';
 import 'package:mobile_app/features/student/domain/repositories/student_repository.dart';
 
 part 'student_provider.freezed.dart';
@@ -10,7 +10,7 @@ part 'student_provider.freezed.dart';
 @freezed
 class StudentState with _$StudentState {
   const factory StudentState({
-    @Default([]) List<Student> students,
+    @Default([]) List<StudentEntity> students,
     @Default(false) bool isLoading,
     Failure? failure,
   }) = _StudentState;
@@ -52,7 +52,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
     );
   }
 
-  Future<void> createStudent(Student student) async {
+  Future<void> createStudent(StudentEntity student) async {
     state = state.copyWith(isLoading: true, failure: null);
 
     final result = await _repository.createStudent(student);
@@ -66,7 +66,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
     );
   }
 
-  Future<void> updateStudent(Student student) async {
+  Future<void> updateStudent(StudentEntity student) async {
     state = state.copyWith(isLoading: true, failure: null);
 
     final result = await _repository.updateStudent(student);

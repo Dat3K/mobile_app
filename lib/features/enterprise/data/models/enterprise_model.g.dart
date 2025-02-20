@@ -1,44 +1,50 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'student.dart';
+part of 'enterprise_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class StudentAdapter extends TypeAdapter<Student> {
+class EnterpriseModelAdapter extends TypeAdapter<EnterpriseModel> {
   @override
-  final int typeId = 2;
+  final int typeId = 3;
 
   @override
-  Student read(BinaryReader reader) {
+  EnterpriseModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Student(
+    return EnterpriseModel(
       id: fields[0] as String,
       name: fields[1] as String,
-      email: fields[2] as String,
-      grade: fields[3] as String,
-      createdAt: fields[4] as DateTime,
+      description: fields[2] as String,
+      industry: fields[3] as String,
+      imagePath: fields[4] as String,
+      createdAt: fields[5] as DateTime,
+      updatedAt: fields[6] as DateTime,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Student obj) {
+  void write(BinaryWriter writer, EnterpriseModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.email)
+      ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.grade)
+      ..write(obj.industry)
       ..writeByte(4)
-      ..write(obj.createdAt);
+      ..write(obj.imagePath)
+      ..writeByte(5)
+      ..write(obj.createdAt)
+      ..writeByte(6)
+      ..write(obj.updatedAt);
   }
 
   @override
@@ -47,7 +53,7 @@ class StudentAdapter extends TypeAdapter<Student> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is StudentAdapter &&
+      other is EnterpriseModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
@@ -56,20 +62,26 @@ class StudentAdapter extends TypeAdapter<Student> {
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$StudentImpl _$$StudentImplFromJson(Map<String, dynamic> json) =>
-    _$StudentImpl(
+_$EnterpriseModelImpl _$$EnterpriseModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$EnterpriseModelImpl(
       id: json['id'] as String,
       name: json['name'] as String,
-      email: json['email'] as String,
-      grade: json['grade'] as String,
+      description: json['description'] as String,
+      industry: json['industry'] as String,
+      imagePath: json['imagePath'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
 
-Map<String, dynamic> _$$StudentImplToJson(_$StudentImpl instance) =>
+Map<String, dynamic> _$$EnterpriseModelImplToJson(
+        _$EnterpriseModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'email': instance.email,
-      'grade': instance.grade,
+      'description': instance.description,
+      'industry': instance.industry,
+      'imagePath': instance.imagePath,
       'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
     };

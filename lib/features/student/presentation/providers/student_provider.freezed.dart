@@ -16,7 +16,7 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$StudentState {
-  List<Student> get students => throw _privateConstructorUsedError;
+  List<StudentEntity> get students => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   Failure? get failure => throw _privateConstructorUsedError;
 
@@ -33,7 +33,7 @@ abstract class $StudentStateCopyWith<$Res> {
           StudentState value, $Res Function(StudentState) then) =
       _$StudentStateCopyWithImpl<$Res, StudentState>;
   @useResult
-  $Res call({List<Student> students, bool isLoading, Failure? failure});
+  $Res call({List<StudentEntity> students, bool isLoading, Failure? failure});
 }
 
 /// @nodoc
@@ -59,7 +59,7 @@ class _$StudentStateCopyWithImpl<$Res, $Val extends StudentState>
       students: null == students
           ? _value.students
           : students // ignore: cast_nullable_to_non_nullable
-              as List<Student>,
+              as List<StudentEntity>,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -80,7 +80,7 @@ abstract class _$$StudentStateImplCopyWith<$Res>
       __$$StudentStateImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({List<Student> students, bool isLoading, Failure? failure});
+  $Res call({List<StudentEntity> students, bool isLoading, Failure? failure});
 }
 
 /// @nodoc
@@ -104,7 +104,7 @@ class __$$StudentStateImplCopyWithImpl<$Res>
       students: null == students
           ? _value._students
           : students // ignore: cast_nullable_to_non_nullable
-              as List<Student>,
+              as List<StudentEntity>,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -121,15 +121,15 @@ class __$$StudentStateImplCopyWithImpl<$Res>
 
 class _$StudentStateImpl implements _StudentState {
   const _$StudentStateImpl(
-      {final List<Student> students = const [],
+      {final List<StudentEntity> students = const [],
       this.isLoading = false,
       this.failure})
       : _students = students;
 
-  final List<Student> _students;
+  final List<StudentEntity> _students;
   @override
   @JsonKey()
-  List<Student> get students {
+  List<StudentEntity> get students {
     if (_students is EqualUnmodifiableListView) return _students;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_students);
@@ -172,12 +172,12 @@ class _$StudentStateImpl implements _StudentState {
 
 abstract class _StudentState implements StudentState {
   const factory _StudentState(
-      {final List<Student> students,
+      {final List<StudentEntity> students,
       final bool isLoading,
       final Failure? failure}) = _$StudentStateImpl;
 
   @override
-  List<Student> get students;
+  List<StudentEntity> get students;
   @override
   bool get isLoading;
   @override

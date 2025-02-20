@@ -62,7 +62,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
   $Res call({
     Object? id = null,
     Object? email = null,
-    Object? role = freezed,
+    Object? role = null,
     Object? isActive = null,
     Object? avatarPath = null,
     Object? lastLogin = null,
@@ -76,7 +76,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      role: freezed == role
+      role: null == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
               as UserRole,
@@ -128,7 +128,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? email = null,
-    Object? role = freezed,
+    Object? role = null,
     Object? isActive = null,
     Object? avatarPath = null,
     Object? lastLogin = null,
@@ -142,7 +142,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      role: freezed == role
+      role: null == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
               as UserRole,
@@ -199,7 +199,7 @@ class _$UserEntityImpl extends _UserEntity {
             other is _$UserEntityImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.email, email) || other.email == email) &&
-            const DeepCollectionEquality().equals(other.role, role) &&
+            (identical(other.role, role) || other.role == role) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.avatarPath, avatarPath) ||
@@ -210,13 +210,7 @@ class _$UserEntityImpl extends _UserEntity {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      email,
-      const DeepCollectionEquality().hash(role),
-      isActive,
-      avatarPath,
-      lastLogin);
+      runtimeType, id, email, role, isActive, avatarPath, lastLogin);
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.

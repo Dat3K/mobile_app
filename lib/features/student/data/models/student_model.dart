@@ -1,53 +1,68 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../domain/entities/student.dart';
+import 'package:hive/hive.dart';
+import 'package:mobile_app/core/constants/hive_type_ids.dart';
+import '../../domain/entities/student_entity.dart';
 
-part 'student_model.freezed.dart';
 part 'student_model.g.dart';
+part 'student_model.freezed.dart';
 
 @freezed
+@HiveType(typeId: HiveTypeIds.student)
 class StudentModel with _$StudentModel {
   const factory StudentModel({
-    required String id,
-    required String name,
-    required String email,
-    required String grade,
-    required DateTime createdAt,
+    @HiveField(0) required String id,
+    @HiveField(1) required String userId,
+    @HiveField(2) required String fullName,
+    @HiveField(3) required String major,
+    @HiveField(4) required int graduationYear,
+    @HiveField(5) required int enrollmentYear,
+    @HiveField(6) required List<String> skills,
+    @HiveField(7) String? currentEnterpriseId,
   }) = _StudentModel;
 
-  const StudentModel._();
-
-  // API serialization
   factory StudentModel.fromJson(Map<String, dynamic> json) =>
       _$StudentModelFromJson(json);
 
-  // Convert from domain entity
-  factory StudentModel.fromEntity(Student student) => StudentModel(
-        id: student.id,
-        name: student.name,
-        email: student.email,
-        grade: student.grade,
-        createdAt: student.createdAt,
-      );
+  const StudentModel._();
 
-  // Convert to domain entity
-  Student toEntity() => Student(
+  StudentEntity toDomain() => StudentEntity(
         id: id,
-        name: name,
-        email: email,
-        grade: grade,
-        createdAt: createdAt,
+        userId: userId,
+        fullName: fullName,
+        major: major,
+        graduationYear: graduationYear,
+        enrollmentYear: enrollmentYear,
+        skills: skills,
+        currentEnterpriseId: currentEnterpriseId,
       );
 
-  // API specific transformations if needed
+  static StudentModel fromDomain(StudentEntity entity) => StudentModel(
+        id: entity.id,
+        userId: entity.userId,
+        fullName: entity.fullName,
+        major: entity.major,
+        graduationYear: entity.graduationYear,
+        enrollmentYear: entity.enrollmentYear,
+        skills: entity.skills,
+        currentEnterpriseId: entity.currentEnterpriseId,
+      );
+
   Map<String, dynamic> toCreateJson() => {
-    'name': name,
-    'email': email,
-    'grade': grade,
-  };
+        'userId': userId,
+        'fullName': fullName,
+        'major': major,
+        'graduationYear': graduationYear,
+        'enrollmentYear': enrollmentYear,
+        'skills': skills,
+        'currentEnterpriseId': currentEnterpriseId,
+      };
 
   Map<String, dynamic> toUpdateJson() => {
-    'name': name,
-    'email': email,
-    'grade': grade,
-  };
+        'fullName': fullName,
+        'major': major,
+        'graduationYear': graduationYear,
+        'enrollmentYear': enrollmentYear,
+        'skills': skills,
+        'currentEnterpriseId': currentEnterpriseId,
+      };
 }
