@@ -10,14 +10,12 @@ import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
-import '../../domain/usecases/register_usecase.dart';
-
+  
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController(
     loginUseCase: ref.watch(loginUseCaseProvider),
     logoutUseCase: ref.watch(logoutUseCaseProvider),
-    registerUseCase: ref.watch(registerUseCaseProvider),
     getCurrentUserUseCase: ref.watch(getCurrentUserUseCaseProvider),
     navigationService: ref.watch(navigationServiceProvider),
     cookieService: ref.watch(cookieServiceProvider),
@@ -51,20 +49,17 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
-  final RegisterUseCase _registerUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final NavigationService _navigationService;
 
   AuthController({
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
-    required RegisterUseCase registerUseCase,
     required GetCurrentUserUseCase getCurrentUserUseCase,
     required NavigationService navigationService,
     required CookieService cookieService,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
-        _registerUseCase = registerUseCase,
         _getCurrentUserUseCase = getCurrentUserUseCase,
         _navigationService = navigationService,
         super(const AuthState()) {
@@ -132,40 +127,6 @@ class AuthController extends StateNotifier<AuthState> {
     );
   }
 
-  Future<void> register(
-    String email,
-    String password,
-    String fullName,
-    UserRole role,
-  ) async {
-    state = state.copyWith(isLoading: true, failure: null);
-
-    final result = await _registerUseCase(
-      RegisterParams(
-        email: email,
-        password: password,
-        fullName: fullName,
-        role: role,
-      ),
-    );
-
-    result.fold(
-      (failure) => state = state.copyWith(
-        isLoading: false,
-        failure: failure,
-        user: null,
-      ),
-      (authResult) {
-        state = state.copyWith(
-          isLoading: false,
-          user: authResult.user,
-          failure: null,
-        );
-        _navigateBasedOnRole(authResult.user);
-      },
-    );
-  }
-
   Future<void> logout() async {
     if (state.isLoading) return;
 
@@ -194,7 +155,7 @@ class AuthController extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        failure: UnexpectedFailure('Lỗi khi đăng xuất: $e'),
+        failure: ServerFailure('Lỗi khi đăng xuất: $e'),
       );
     }
   }

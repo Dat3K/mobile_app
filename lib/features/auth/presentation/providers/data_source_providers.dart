@@ -11,7 +11,7 @@ final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
   final userBox = ref.watch(userBoxProvider);
   final cookieService = ref.watch(cookieServiceProvider);
   final secureStorage = ref.watch(secureStorageServiceProvider);
-  return AuthLocalDataSourceImpl(
+  return AuthLocalDataSource(
     userBox: userBox,
     cookieService: cookieService,
     secureStorage: secureStorage,
@@ -19,7 +19,7 @@ final authLocalDataSourceProvider = Provider<AuthLocalDataSource>((ref) {
 });
 
 /// Provider cho Remote Data Source
-final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
+final authRemoteDataSourceProvider = Provider<IAuthRemoteDataSource>((ref) {
   final apiClient = ref.watch(dioClientProvider);
-  return AuthRemoteDataSourceImpl(client: apiClient);
+  return AuthRemoteDataSource(apiClient);
 });

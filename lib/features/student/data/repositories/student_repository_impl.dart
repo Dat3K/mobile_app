@@ -64,7 +64,7 @@ class StudentRepositoryImpl implements IStudentRepository {
         },
       );
     } catch (e) {
-      return Left(CacheFailure(e.toString()));
+      return Left(CacheFailure.notFound());
     }
   }
 
@@ -108,14 +108,14 @@ class StudentRepositoryImpl implements IStudentRepository {
         },
       );
     } catch (e) {
-      return Left(CacheFailure(e.toString()));
+      return Left(StudentFailure.notFound());
     }
   }
 
   @override
   Future<Either<Failure, Student>> createStudent(Student student) async {
     if (!student.isValid) {
-      return Left(ValidationFailure('Invalid student data'));
+      return Left(StudentFailure.invalidData());
     }
 
     const mutation = r'''
@@ -152,7 +152,7 @@ class StudentRepositoryImpl implements IStudentRepository {
   @override
   Future<Either<Failure, Student>> updateStudent(Student student) async {
     if (!student.canUpdate) {
-      return Left(ValidationFailure('Invalid update data'));
+      return Left(ValidationFailure.invalidValue());
     }
 
     const mutation = r'''
@@ -207,9 +207,13 @@ class StudentRepositoryImpl implements IStudentRepository {
       (failure) => Left(failure),
       (success) async {
         if (success) {
-          // Remove from cache
-          final box = await _getBox();
-          await box.delete(id);
+          try {
+            // Remove from cache
+            final box = await _getBox();
+            await box.delete(id);
+          } catch (e) {
+            return Left(CacheFailure.writeError());
+          }
         }
         return Right(success);
       },

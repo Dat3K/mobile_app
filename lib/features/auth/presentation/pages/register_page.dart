@@ -88,12 +88,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             else
               ElevatedButton(
                 onPressed: () {
-                  ref.read(authControllerProvider.notifier).register(
-                        _emailController.text,
-                        _passwordController.text,
-                        _fullNameController.text,
-                        _selectedRole,
-                      );
+                  
                 },
                 child: const Text('Register'),
               ),

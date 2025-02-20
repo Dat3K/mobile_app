@@ -160,10 +160,10 @@ class DioClient implements IRestClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.sendTimeout:
-        throw TimeoutFailure(e.message ?? 'Request timeout');
+        throw ConnectionFailure(e.message ?? 'Request timeout');
 
       case DioExceptionType.connectionError:
-        throw NetworkFailure(e.message ?? 'Network connection error');
+        throw ConnectionFailure(e.message ?? 'Network connection error');
 
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
@@ -177,20 +177,19 @@ class DioClient implements IRestClient {
             throw ForbiddenFailure(
                 e.response?.data?['message'] ?? 'Access forbidden');
           } else if (statusCode == 404) {
-            throw NotFoundFailure(
-                e.response?.data?['message'] ?? 'Resource not found');
+            throw HttpFailure.notFound();
           }
         }
-        throw BadResponseFailure(e.message ?? 'Bad response');
+        throw HttpFailure.badRequest();
 
       case DioExceptionType.cancel:
-        throw CancelFailure(e.message ?? 'Request cancelled');
+        throw ConnectionFailure.timeout();
 
       case DioExceptionType.badCertificate:
-        throw BadCertificateFailure(e.message ?? 'Bad certificate');
+        throw ConnectionFailure.badCertificate();
 
       default:
-        throw ServerFailure(e.message ?? 'Unknown error occurred');
+        throw ServerFailure.internal();
     }
   }
 

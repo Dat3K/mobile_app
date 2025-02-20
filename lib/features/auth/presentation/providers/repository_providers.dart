@@ -8,8 +8,8 @@ final authRepositoryFamily = Provider.family<AuthRepository, bool>((ref, useAuth
   final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
   final localDataSource = ref.watch(authLocalDataSourceProvider);
   
-  return AuthRepositoryImpl(
-    remoteDataSource: remoteDataSource,
+    return AuthRepositoryImpl(
+      remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
   );
 });

@@ -3,19 +3,19 @@ import '../../../../core/network/rest/cookie_service.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../models/user_model.dart';
 
-abstract class AuthLocalDataSource {
+abstract class IAuthLocalDataSource {
   Future<void> saveUser(UserModel user);
   Future<UserModel?> getUser();
   Future<void> clearUser();
   Future<void> clearAllData();
 }
 
-class AuthLocalDataSourceImpl implements AuthLocalDataSource {
+class AuthLocalDataSource implements IAuthLocalDataSource {
   final Box _userBox;
   final CookieService _cookieService;
   final SecureStorageService _secureStorage;
 
-  AuthLocalDataSourceImpl({
+  AuthLocalDataSource({
     required Box userBox,
     required CookieService cookieService,
     required SecureStorageService secureStorage,
