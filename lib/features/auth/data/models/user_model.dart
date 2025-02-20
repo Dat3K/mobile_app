@@ -2,12 +2,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/value_objects/user_role.dart';
+import 'package:mobile_app/core/constants/hive_type_ids.dart';
 
 part 'user_model.g.dart';
 part 'user_model.freezed.dart';
 
 @freezed
-@HiveType(typeId: 0)
+@HiveType(typeId: HiveTypeIds.user)
 class UserModel with _$UserModel {
   const factory UserModel({
     @HiveField(0) required String id,

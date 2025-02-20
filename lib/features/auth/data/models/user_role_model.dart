@@ -1,10 +1,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
+import 'package:mobile_app/core/constants/hive_type_ids.dart';
 import '../../domain/value_objects/user_role.dart';
 
 part 'user_role_model.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: HiveTypeIds.userRole)
 enum UserRoleModel {
   @JsonValue('faculty')
   @HiveField(0)

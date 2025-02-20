@@ -9,6 +9,10 @@ abstract class Failure extends Equatable {
   List<Object> get props => [message];
 }
 
+class GraphQLFailure extends Failure {
+  const GraphQLFailure(super.message);
+}
+
 class ServerFailure extends Failure {
   const ServerFailure(super.message);
 }
@@ -59,4 +63,16 @@ class TimeoutFailure extends Failure {
 
 class BadCertificateFailure extends Failure {
   const BadCertificateFailure(super.message);
+}
+
+class ValidationFailure extends Failure {
+  const ValidationFailure(super.message);
+}
+
+class StudentFailure extends Failure {
+  const StudentFailure(super.message);
+  
+  factory StudentFailure.notFound() => const StudentFailure('Student not found');
+  factory StudentFailure.invalidData() => const StudentFailure('Invalid student data');
+  factory StudentFailure.duplicateEmail() => const StudentFailure('Email already exists');
 }
