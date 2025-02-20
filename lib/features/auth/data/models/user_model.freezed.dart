@@ -25,7 +25,7 @@ mixin _$UserModel {
   @HiveField(1)
   String get email => throw _privateConstructorUsedError;
   @HiveField(2)
-  String get role => throw _privateConstructorUsedError;
+  UserRoleModel get role => throw _privateConstructorUsedError;
   @HiveField(3)
   bool get isActive => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -51,7 +51,7 @@ abstract class $UserModelCopyWith<$Res> {
   $Res call(
       {@HiveField(0) String id,
       @HiveField(1) String email,
-      @HiveField(2) String role,
+      @HiveField(2) UserRoleModel role,
       @HiveField(3) bool isActive,
       @HiveField(4) String avatarPath,
       @HiveField(5) DateTime lastLogin});
@@ -91,7 +91,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
       role: null == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
-              as String,
+              as UserRoleModel,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -119,7 +119,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
   $Res call(
       {@HiveField(0) String id,
       @HiveField(1) String email,
-      @HiveField(2) String role,
+      @HiveField(2) UserRoleModel role,
       @HiveField(3) bool isActive,
       @HiveField(4) String avatarPath,
       @HiveField(5) DateTime lastLogin});
@@ -157,7 +157,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
       role: null == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
-              as String,
+              as UserRoleModel,
       isActive: null == isActive
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
@@ -197,7 +197,7 @@ class _$UserModelImpl extends _UserModel {
   final String email;
   @override
   @HiveField(2)
-  final String role;
+  final UserRoleModel role;
   @override
   @HiveField(3)
   final bool isActive;
@@ -254,7 +254,7 @@ abstract class _UserModel extends UserModel {
   const factory _UserModel(
       {@HiveField(0) required final String id,
       @HiveField(1) required final String email,
-      @HiveField(2) required final String role,
+      @HiveField(2) required final UserRoleModel role,
       @HiveField(3) required final bool isActive,
       @HiveField(4) required final String avatarPath,
       @HiveField(5) required final DateTime lastLogin}) = _$UserModelImpl;
@@ -271,7 +271,7 @@ abstract class _UserModel extends UserModel {
   String get email;
   @override
   @HiveField(2)
-  String get role;
+  UserRoleModel get role;
   @override
   @HiveField(3)
   bool get isActive;

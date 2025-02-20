@@ -19,7 +19,7 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
     return UserModel(
       id: fields[0] as String,
       email: fields[1] as String,
-      role: fields[2] as String,
+      role: fields[2] as UserRoleModel,
       isActive: fields[3] as bool,
       avatarPath: fields[4] as String,
       lastLogin: fields[5] as DateTime,
@@ -63,7 +63,7 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
     _$UserModelImpl(
       id: json['id'] as String,
       email: json['email'] as String,
-      role: json['role'] as String,
+      role: $enumDecode(_$UserRoleModelEnumMap, json['role']),
       isActive: json['isActive'] as bool,
       avatarPath: json['avatarPath'] as String,
       lastLogin: DateTime.parse(json['lastLogin'] as String),
@@ -78,3 +78,9 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'avatarPath': instance.avatarPath,
       'lastLogin': instance.lastLogin.toIso8601String(),
     };
+
+const _$UserRoleModelEnumMap = {
+  UserRoleModel.faculty: 'faculty',
+  UserRoleModel.student: 'student',
+  UserRoleModel.enterprise: 'enterprise',
+};

@@ -1,16 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/rest/cookie_service.dart';
 import 'package:mobile_app/core/services/navigation_service.dart';
+import 'package:mobile_app/core/usecases/usecase.dart';
+import 'package:mobile_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:mobile_app/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mobile_app/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/usecase_providers.dart';
-import '../../../../core/error/failures.dart';
-import '../../../../core/usecases/usecase.dart';
-import '../../domain/entities/user_entity.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/logout_usecase.dart';
-  
+
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController(

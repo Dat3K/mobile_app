@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
-import '../../domain/value_objects/user_role.dart';
-import '../providers/auth_provider.dart';
+import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
+import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});

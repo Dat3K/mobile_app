@@ -16,17 +16,11 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$UserEntity {
-  @HiveField(0)
   String get id => throw _privateConstructorUsedError;
-  @HiveField(1)
   String get email => throw _privateConstructorUsedError;
-  @HiveField(2)
   UserRole get role => throw _privateConstructorUsedError;
-  @HiveField(3)
   bool get isActive => throw _privateConstructorUsedError;
-  @HiveField(4)
   String get avatarPath => throw _privateConstructorUsedError;
-  @HiveField(5)
   DateTime get lastLogin => throw _privateConstructorUsedError;
 
   /// Create a copy of UserEntity
@@ -43,12 +37,12 @@ abstract class $UserEntityCopyWith<$Res> {
       _$UserEntityCopyWithImpl<$Res, UserEntity>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String email,
-      @HiveField(2) UserRole role,
-      @HiveField(3) bool isActive,
-      @HiveField(4) String avatarPath,
-      @HiveField(5) DateTime lastLogin});
+      {String id,
+      String email,
+      UserRole role,
+      bool isActive,
+      String avatarPath,
+      DateTime lastLogin});
 }
 
 /// @nodoc
@@ -68,7 +62,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
   $Res call({
     Object? id = null,
     Object? email = null,
-    Object? role = null,
+    Object? role = freezed,
     Object? isActive = null,
     Object? avatarPath = null,
     Object? lastLogin = null,
@@ -82,7 +76,7 @@ class _$UserEntityCopyWithImpl<$Res, $Val extends UserEntity>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      role: null == role
+      role: freezed == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
               as UserRole,
@@ -111,12 +105,12 @@ abstract class _$$UserEntityImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String email,
-      @HiveField(2) UserRole role,
-      @HiveField(3) bool isActive,
-      @HiveField(4) String avatarPath,
-      @HiveField(5) DateTime lastLogin});
+      {String id,
+      String email,
+      UserRole role,
+      bool isActive,
+      String avatarPath,
+      DateTime lastLogin});
 }
 
 /// @nodoc
@@ -134,7 +128,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? email = null,
-    Object? role = null,
+    Object? role = freezed,
     Object? isActive = null,
     Object? avatarPath = null,
     Object? lastLogin = null,
@@ -148,7 +142,7 @@ class __$$UserEntityImplCopyWithImpl<$Res>
           ? _value.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
-      role: null == role
+      role: freezed == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
               as UserRole,
@@ -172,31 +166,25 @@ class __$$UserEntityImplCopyWithImpl<$Res>
 
 class _$UserEntityImpl extends _UserEntity {
   const _$UserEntityImpl(
-      {@HiveField(0) required this.id,
-      @HiveField(1) required this.email,
-      @HiveField(2) required this.role,
-      @HiveField(3) required this.isActive,
-      @HiveField(4) required this.avatarPath,
-      @HiveField(5) required this.lastLogin})
+      {required this.id,
+      required this.email,
+      required this.role,
+      required this.isActive,
+      required this.avatarPath,
+      required this.lastLogin})
       : super._();
 
   @override
-  @HiveField(0)
   final String id;
   @override
-  @HiveField(1)
   final String email;
   @override
-  @HiveField(2)
   final UserRole role;
   @override
-  @HiveField(3)
   final bool isActive;
   @override
-  @HiveField(4)
   final String avatarPath;
   @override
-  @HiveField(5)
   final DateTime lastLogin;
 
   @override
@@ -211,7 +199,7 @@ class _$UserEntityImpl extends _UserEntity {
             other is _$UserEntityImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.role, role) || other.role == role) &&
+            const DeepCollectionEquality().equals(other.role, role) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.avatarPath, avatarPath) ||
@@ -222,7 +210,13 @@ class _$UserEntityImpl extends _UserEntity {
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, id, email, role, isActive, avatarPath, lastLogin);
+      runtimeType,
+      id,
+      email,
+      const DeepCollectionEquality().hash(role),
+      isActive,
+      avatarPath,
+      lastLogin);
 
   /// Create a copy of UserEntity
   /// with the given fields replaced by the non-null parameter values.
@@ -235,31 +229,25 @@ class _$UserEntityImpl extends _UserEntity {
 
 abstract class _UserEntity extends UserEntity {
   const factory _UserEntity(
-      {@HiveField(0) required final String id,
-      @HiveField(1) required final String email,
-      @HiveField(2) required final UserRole role,
-      @HiveField(3) required final bool isActive,
-      @HiveField(4) required final String avatarPath,
-      @HiveField(5) required final DateTime lastLogin}) = _$UserEntityImpl;
+      {required final String id,
+      required final String email,
+      required final UserRole role,
+      required final bool isActive,
+      required final String avatarPath,
+      required final DateTime lastLogin}) = _$UserEntityImpl;
   const _UserEntity._() : super._();
 
   @override
-  @HiveField(0)
   String get id;
   @override
-  @HiveField(1)
   String get email;
   @override
-  @HiveField(2)
   UserRole get role;
   @override
-  @HiveField(3)
   bool get isActive;
   @override
-  @HiveField(4)
   String get avatarPath;
   @override
-  @HiveField(5)
   DateTime get lastLogin;
 
   /// Create a copy of UserEntity
