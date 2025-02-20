@@ -5,11 +5,11 @@ import '../../domain/entities/user_entity.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../datasources/auth_local_data_source.dart';
 
-class AuthRepositoryImpl implements AuthRepository {
+class AuthRepository implements IAuthRepository {
   final IAuthRemoteDataSource _remoteDataSource;
   final IAuthLocalDataSource _localDataSource;
 
-  AuthRepositoryImpl({
+  AuthRepository({
     required IAuthRemoteDataSource remoteDataSource,
     required IAuthLocalDataSource localDataSource,
   })  : _remoteDataSource = remoteDataSource,

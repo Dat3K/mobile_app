@@ -5,7 +5,7 @@ import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
 class GetCurrentUserUseCase implements UseCase<UserEntity, NoParams> {
-  final AuthRepository repository;
+  final IAuthRepository repository;
 
   GetCurrentUserUseCase(this.repository);
 

@@ -11,7 +11,7 @@ class LoginParams {
 }
 
 class LoginUseCase implements UseCase<AuthResult, LoginParams> {
-  final AuthRepository repository;
+  final IAuthRepository repository;
 
   LoginUseCase(this.repository);
 

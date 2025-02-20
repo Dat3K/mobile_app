@@ -8,7 +8,7 @@ class AuthResult {
   AuthResult({required this.user});
 }
 
-abstract class AuthRepository {
+abstract class IAuthRepository {
   Future<Either<Failure, AuthResult>> login(String email, String password);
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, UserEntity>> getCurrentUser();

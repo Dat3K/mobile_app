@@ -4,17 +4,17 @@ import '../../domain/repositories/auth_repository.dart';
 import 'data_source_providers.dart';
 
 /// Repository family cho các repository cần auth
-final authRepositoryFamily = Provider.family<AuthRepository, bool>((ref, useAuth) {
+final authRepositoryFamily = Provider.family<IAuthRepository, bool>((ref, useAuth) {
   final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
   final localDataSource = ref.watch(authLocalDataSourceProvider);
   
-    return AuthRepositoryImpl(
+    return AuthRepository(
       remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
   );
 });
 
 /// Auth repository mặc định với auth
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
+final authRepositoryProvider = Provider<IAuthRepository>((ref) {
   return ref.watch(authRepositoryFamily(true));
 });
