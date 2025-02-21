@@ -129,3 +129,7 @@ class EnterpriseFailure extends Failure {
   factory EnterpriseFailure.duplicateEmail() => const EnterpriseFailure('Email already exists');
   factory EnterpriseFailure.notRegistered() => const EnterpriseFailure('Enterprise not registered');
 }
+
+class NotFoundFailure extends Failure {
+  const NotFoundFailure(super.message);
+}

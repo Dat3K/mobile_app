@@ -144,4 +144,33 @@ app.*.symbols
 # cursor rules
 .cursor
 
+# Generated code
+*.g.dart
+*.freezed.dart
+*.gr.dart
+*.gen.dart
+*.config.dart
+*.mocks.dart
+*.hive.dart
 
+# Generated GraphQL
+*.gql.dart
+*.gql.g.dart
+*.ast.gql.dart
+*.req.gql.dart
+*.data.gql.dart
+*.var.gql.dart
+*.schema.gql.dart
+
+# Generated l10n
+*.l10n.dart
+lib/generated/
+lib/gen/
+
+# Generated assets
+*.gen.dart
+*.asset.dart
+
+# Generated database
+*.drift.dart
+*.drift.g.dart

@@ -1,37 +1,33 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/graphql/base_graphql_service.dart';
+import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/features/student/data/models/student_model.dart';
 import 'package:mobile_app/features/student/domain/entities/student_entity.dart';
 import 'package:mobile_app/features/student/domain/repositories/student_repository.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 final studentRepositoryProvider = Provider<IStudentRepository>((ref) {
   final graphQLService = ref.watch(baseGraphQLServiceProvider);
-  return StudentRepositoryImpl(graphQLService);
+  final storageService = ref.watch(hiveStorageServiceProvider);
+  return StudentRepositoryImpl(graphQLService, storageService);
 });
 
 class StudentRepositoryImpl implements IStudentRepository {
   final BaseGraphQLService _graphQLService;
-  static const String _boxName = 'students';
+  final IStorageService _storageService;
 
-  StudentRepositoryImpl(this._graphQLService);
-
-  // Helper method to get Hive box
-  Future<Box<StudentEntity>> _getBox() async {
-    return await Hive.openBox<StudentEntity>(_boxName);
-  }
+  StudentRepositoryImpl(this._graphQLService, this._storageService);
 
   @override
   Future<Either<Failure, List<StudentEntity>>> getStudents() async {
     try {
       // First try to get from local storage
-      final box = await _getBox();
-      final localStudents = box.values.toList();
+      final localStudents = await _storageService.getAll<StudentModel>(StorageKeys.studentBox);
       
       if (localStudents.isNotEmpty) {
-        return Right(localStudents);
+        return Right(localStudents.map((model) => model.toDomain()).toList());
       }
 
       // If local is empty, fetch from API
@@ -59,13 +55,13 @@ class StudentRepositoryImpl implements IStudentRepository {
         (models) async {
           final students = models.map((model) => model.toDomain()).toList();
           // Cache the results
-          final box = await _getBox();
-          await box.addAll(students);
+          final entries = {for (var model in models) model.id: model};
+          await _storageService.putAll(entries, StorageKeys.studentBox);
           return Right(students);
         },
       );
     } catch (e) {
-      return Left(CacheFailure.notFound());
+      return Left(CacheFailure('Failed to get students: $e'));
     }
   }
 
@@ -73,11 +69,10 @@ class StudentRepositoryImpl implements IStudentRepository {
   Future<Either<Failure, StudentEntity>> getStudentById(String id) async {
     try {
       // First try to get from local storage
-      final box = await _getBox();
-      final localStudent = box.get(id);
+      final localStudent = await _storageService.get<StudentModel>(id, StorageKeys.studentBox);
       
       if (localStudent != null) {
-        return Right(localStudent);
+        return Right(localStudent.toDomain());
       }
 
       // If not in local storage, fetch from API
@@ -104,20 +99,19 @@ class StudentRepositoryImpl implements IStudentRepository {
         (model) async {
           final student = model.toDomain();
           // Cache the result
-          final box = await _getBox();
-          await box.put(student.id, student);
+          await _storageService.put(id, model, StorageKeys.studentBox);
           return Right(student);
         },
       );
     } catch (e) {
-      return Left(StudentFailure.notFound());
+      return Left(StudentFailure('Failed to get student: $e'));
     }
   }
 
   @override
   Future<Either<Failure, StudentEntity>> createStudent(StudentEntity student) async {
     if (!student.isValid) {
-      return Left(StudentFailure.invalidData());
+      return Left(StudentFailure('Invalid student data'));
     }
 
     const mutation = r'''
@@ -144,8 +138,7 @@ class StudentRepositoryImpl implements IStudentRepository {
       (model) async {
         final newStudent = model.toDomain();
         // Cache the new student
-        final box = await _getBox();
-        await box.put(newStudent.id, newStudent);
+        await _storageService.put(model.id, model, StorageKeys.studentBox);
         return Right(newStudent);
       },
     );
@@ -154,7 +147,7 @@ class StudentRepositoryImpl implements IStudentRepository {
   @override
   Future<Either<Failure, StudentEntity>> updateStudent(StudentEntity student) async {
     if (!student.canUpdate) {
-      return Left(ValidationFailure.invalidValue());
+      return Left(ValidationFailure('Cannot update student'));
     }
 
     const mutation = r'''
@@ -184,8 +177,7 @@ class StudentRepositoryImpl implements IStudentRepository {
       (model) async {
         final updatedStudent = model.toDomain();
         // Update cache
-        final box = await _getBox();
-        await box.put(updatedStudent.id, updatedStudent);
+        await _storageService.put(model.id, model, StorageKeys.studentBox);
         return Right(updatedStudent);
       },
     );
@@ -211,10 +203,9 @@ class StudentRepositoryImpl implements IStudentRepository {
         if (success) {
           try {
             // Remove from cache
-            final box = await _getBox();
-            await box.delete(id);
+            await _storageService.delete(id, StorageKeys.studentBox);
           } catch (e) {
-            return Left(CacheFailure.writeError());
+            return Left(CacheFailure('Failed to delete from cache: $e'));
           }
         }
         return Right(success);

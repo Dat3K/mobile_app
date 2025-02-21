@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
-import '../../domain/entities/user_entity.dart';
+import 'package:mobile_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mobile_app/core/constants/hive_type_ids.dart';
 import 'user_role_model.dart';
 
@@ -32,4 +32,17 @@ class UserModel with _$UserModel {
         avatarPath: avatarPath,
         lastLogin: lastLogin,
       );
+
+  static UserModel fromDomain(UserEntity entity) => UserModel(
+        id: entity.id,
+        email: entity.email,
+        role: UserRoleModel.fromDomain(entity.role),
+        isActive: entity.isActive,
+        avatarPath: entity.avatarPath,
+        lastLogin: entity.lastLogin,
+      );
 }
+
+// JSON conversion helpers
+UserRoleModel _roleFromJson(dynamic json) => UserRoleModel.fromJson(json as String);
+String _roleToJson(UserRoleModel role) => role.toJson();

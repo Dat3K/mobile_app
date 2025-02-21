@@ -55,7 +55,7 @@ class StudentModel with _$StudentModel {
         'enrollmentYear': enrollmentYear,
         'skills': skills,
         'currentEnterpriseId': currentEnterpriseId,
-      };
+  };
 
   Map<String, dynamic> toUpdateJson() => {
         'fullName': fullName,
@@ -64,5 +64,5 @@ class StudentModel with _$StudentModel {
         'enrollmentYear': enrollmentYear,
         'skills': skills,
         'currentEnterpriseId': currentEnterpriseId,
-      };
+  };
 }

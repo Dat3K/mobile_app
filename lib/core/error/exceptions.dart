@@ -1,14 +1,29 @@
 class ServerException implements Exception {
   final String message;
-  const ServerException({required this.message});
+  ServerException(this.message);
 }
 
 class CacheException implements Exception {
   final String message;
-  const CacheException({required this.message});
+  CacheException(this.message);
 }
 
 class NetworkException implements Exception {
   final String message;
-  const NetworkException({required this.message});
+  NetworkException(this.message);
+}
+
+class ValidationException implements Exception {
+  final String message;
+  ValidationException(this.message);
+}
+
+class AuthenticationException implements Exception {
+  final String message;
+  AuthenticationException(this.message);
+}
+
+class NotFoundException implements Exception {
+  final String message;
+  NotFoundException(this.message);
 } 
