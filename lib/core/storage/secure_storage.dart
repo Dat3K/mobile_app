@@ -20,8 +20,9 @@ SecureStorageService secureStorageService(ref) {
 class SecureStorageService {
   final FlutterSecureStorage _storage;
 
-  SecureStorageService({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+  SecureStorageService({
+    required FlutterSecureStorage storage,
+  }) : _storage = storage;
 
   Future<String?> read(String key) async {
     try {

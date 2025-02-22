@@ -2,6 +2,7 @@ import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
+import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/features/auth/data/models/user_model.dart';
 
 abstract class IAuthLocalDataSource {
@@ -29,21 +30,20 @@ class AuthLocalDataSource implements IAuthLocalDataSource {
 
   @override
   Future<void> saveUser(UserModel user) async {
-    await _hiveStorage.put('user', user, 'user');
+    await _hiveStorage.put<UserModel>(StorageKeys.userIdKey, user, StorageKeys.userBox);
     _logger.i('User saved to local storage');
   }
 
   @override
   Future<UserModel?> getUser() async {
-    final user = await _hiveStorage.get('user', 'user');
+    final user = await _hiveStorage.get<UserModel>(StorageKeys.userIdKey, StorageKeys.userBox);
     _logger.i('User retrieved from local storage');
-    return user as UserModel?;
-
+    return user;
   }
 
   @override
   Future<void> clearUser() async {
-    await _hiveStorage.delete('user', 'user');
+    await _hiveStorage.delete(StorageKeys.userIdKey, StorageKeys.userBox);
     _logger.i('User deleted from local storage');
   }
 

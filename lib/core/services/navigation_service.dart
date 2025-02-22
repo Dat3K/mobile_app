@@ -8,14 +8,16 @@ part 'navigation_service.g.dart';
 @Riverpod(keepAlive: true)
 NavigationService navigationService(ref) {
   final router = ref.watch(routerProvider);
-  return NavigationService(router);
+  return NavigationService(router: router);
 }
 
 /// Service để quản lý navigation trong ứng dụng
 class NavigationService {
   final GoRouter _router;
 
-  NavigationService(this._router);
+  NavigationService({
+    required GoRouter router,
+  }) : _router = router;
 
   /// Navigate đến route với name
   void goNamed(

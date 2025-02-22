@@ -10,13 +10,15 @@ part 'hive_migration_service.g.dart';
 @riverpod
 HiveMigrationService hiveMigrationService(ref) {
   final logger = ref.watch(loggerServiceProvider);
-  return HiveMigrationService(logger);
+  return HiveMigrationService(logger: logger);
 }
 
 class HiveMigrationService {
   final LoggerService _logger;
 
-  HiveMigrationService(this._logger);
+  HiveMigrationService({
+    required LoggerService logger,
+  }) : _logger = logger;
 
   /// Check and perform migrations if needed
   Future<void> checkAndMigrate(Box box) async {

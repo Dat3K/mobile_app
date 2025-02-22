@@ -32,13 +32,21 @@ class AuthState with _$AuthState {
 class AuthNotifier extends _$AuthNotifier {
   @override
   AuthState build() {
-    // Kiểm tra auth khi khởi tạo
-    _checkAuthOnStartup();
+    // Khởi tạo state mặc định
+    Future.microtask(() => _checkAuthOnStartup());
     return const AuthState();
   }
 
   Future<void> _checkAuthOnStartup() async {
-    await checkAuth();
+    try {
+      await checkAuth();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: false,
+        failure: ServerFailure('Lỗi khởi tạo authentication: ${e.toString()}'),
+      );
+    }
   }
 
   Future<void> login({
@@ -49,27 +57,35 @@ class AuthNotifier extends _$AuthNotifier {
 
     state = state.copyWith(isLoading: true, failure: null);
 
-    final loginUseCase = ref.read(loginUseCaseProvider);
-    final result = await loginUseCase(
-      LoginParams(email: email, password: password),
-    );
+    try {
+      final loginUseCase = ref.read(loginUseCaseProvider);
+      final result = await loginUseCase(
+        LoginParams(email: email, password: password),
+      );
 
-    state = result.fold(
-      (failure) => state.copyWith(
+      state = result.fold(
+        (failure) => state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          failure: failure,
+        ),
+        (authResult) {
+          _navigateBasedOnRole(authResult.user);
+          return state.copyWith(
+            isLoading: false,
+            isAuthenticated: true,
+            user: authResult.user,
+            failure: null,
+          );
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
-        failure: failure,
-      ),
-      (authResult) {
-        _navigateBasedOnRole(authResult.user);
-        return state.copyWith(
-          isLoading: false,
-          isAuthenticated: true,
-          user: authResult.user,
-          failure: null,
-        );
-      },
-    );
+        failure: ServerFailure('Lỗi đăng nhập: ${e.toString()}'),
+      );
+    }
   }
 
   Future<void> logout() async {
@@ -77,19 +93,26 @@ class AuthNotifier extends _$AuthNotifier {
 
     state = state.copyWith(isLoading: true, failure: null);
 
-    final logoutUseCase = ref.read(logoutUseCaseProvider);
-    final result = await logoutUseCase(NoParams());
+    try {
+      final logoutUseCase = ref.read(logoutUseCaseProvider);
+      final result = await logoutUseCase(NoParams());
 
-    state = result.fold(
-      (failure) => state.copyWith(
+      state = result.fold(
+        (failure) => state.copyWith(
+          isLoading: false,
+          failure: failure,
+        ),
+        (_) {
+          _navigateToLogin();
+          return const AuthState();
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
         isLoading: false,
-        failure: failure,
-      ),
-      (_) {
-        _navigateToLogin();
-        return const AuthState();
-      },
-    );
+        failure: ServerFailure('Lỗi đăng xuất: ${e.toString()}'),
+      );
+    }
   }
 
   Future<void> checkAuth() async {
@@ -97,28 +120,37 @@ class AuthNotifier extends _$AuthNotifier {
 
     state = state.copyWith(isLoading: true, failure: null);
 
-    final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
-    final result = await getCurrentUser(NoParams());
+    try {
+      final getCurrentUser = ref.read(getCurrentUserUseCaseProvider);
+      final result = await getCurrentUser(NoParams());
 
-    state = result.fold(
-      (failure) {
-        _navigateToLogin();
-        return state.copyWith(
-          isLoading: false,
-          isAuthenticated: false,
-          failure: failure,
-        );
-      },
-      (user) {
-        _navigateBasedOnRole(user);
-        return state.copyWith(
-          isLoading: false,
-          isAuthenticated: true,
-          user: user,
-          failure: null,
-        );
-      },
-    );
+      state = result.fold(
+        (failure) {
+          _navigateToLogin();
+          return state.copyWith(
+            isLoading: false,
+            isAuthenticated: false,
+            failure: null,
+          );
+        },
+        (user) {
+            _navigateBasedOnRole(user);
+            return state.copyWith(
+              isLoading: false,
+              isAuthenticated: true,
+              user: user,
+            failure: null,
+          );
+        },
+      );
+    } catch (e) {
+      _navigateToLogin();
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: false,
+        failure: ServerFailure('Lỗi kiểm tra xác thực: ${e.toString()}'),
+      );
+    }
   }
 
   void _navigateBasedOnRole(UserEntity user) {

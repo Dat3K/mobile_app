@@ -45,7 +45,11 @@ HiveStorageService hiveStorageService(ref) {
   final logger = ref.watch(loggerServiceProvider);
   final encryption = ref.watch(encryptionServiceProvider);
   final migration = ref.watch(hiveMigrationServiceProvider);
-  return HiveStorageService(logger, encryption, migration);
+  return HiveStorageService(
+    logger: logger,
+    encryption: encryption,
+    migration: migration,
+  );
 }
 
 abstract class IStorageService {
@@ -68,7 +72,13 @@ class HiveStorageService implements IStorageService {
   final Map<String, Timer> _compactionTimers = {};
   final Map<String, Box> _boxes = {};
 
-  HiveStorageService(this._logger, this._encryption, this._migration);
+  HiveStorageService({
+    required LoggerService logger,
+    required EncryptionService encryption,
+    required HiveMigrationService migration,
+  })  : _logger = logger,
+        _encryption = encryption,
+        _migration = migration;
 
   @override
   Future<void> init() async {
@@ -86,7 +96,7 @@ class HiveStorageService implements IStorageService {
       await Future.wait(
         StorageKeys.allBoxes.map((boxName) async {
           final isSecure = StorageKeys.secureBoxes.contains(boxName);
-          final box = await _openBoxWithRetry(
+          final box = await _openBoxWithRetry<dynamic>(
             boxName,
             encryptionKey: isSecure ? encryptionKey : null,
           );
@@ -177,7 +187,12 @@ class HiveStorageService implements IStorageService {
     while (attempts < maxRetries) {
       try {
         if (Hive.isBoxOpen(boxName)) {
-          return Hive.box<T>(boxName);
+          final box = Hive.box(boxName);
+          if (box is Box<T>) {
+            return box;
+          }
+          // Nếu box đã mở nhưng không đúng kiểu, đóng và mở lại
+          await box.close();
         }
         return await Hive.openBox<T>(
           boxName,
@@ -227,6 +242,29 @@ class HiveStorageService implements IStorageService {
     );
   }
 
+  Future<Box<T>> _getBox<T>(String boxName) async {
+    try {
+      if (!_boxes.containsKey(boxName) || !_boxes[boxName]!.isOpen) {
+        _boxes[boxName] = await _openBoxWithRetry<T>(boxName);
+      }
+
+      final box = _boxes[boxName];
+      if (box is Box<T>) {
+        return box;
+      }
+
+      // Nếu box không đúng kiểu, đóng và mở lại với kiểu đúng
+      if (box != null) {
+        await box.close();
+      }
+      _boxes[boxName] = await _openBoxWithRetry<T>(boxName);
+      return _boxes[boxName] as Box<T>;
+    } catch (e, stackTrace) {
+      _logger.e('Failed to get box $boxName', e, stackTrace);
+      rethrow;
+    }
+  }
+
   @override
   Future<T?> get<T>(String key, String boxName) async {
     try {
@@ -242,7 +280,7 @@ class HiveStorageService implements IStorageService {
   Future<List<T>> getAll<T>(String boxName) async {
     try {
       final box = await _getBox<T>(boxName);
-      return box.values.toList();
+      return box.values.cast<T>().toList();
     } catch (e, stackTrace) {
       _logger.e('Failed to get all data from box $boxName', e, stackTrace);
       throw CacheException('Failed to get all data from Hive: $e');
@@ -307,11 +345,20 @@ class HiveStorageService implements IStorageService {
   @override
   Future<void> clear() async {
     try {
+      // Close all boxes first
+      await Future.wait([
+        for (final box in _boxes.values)
+          if (box.isOpen) box.close(),
+      ]);
+      _boxes.clear();
+
+      // Then delete from disk
       await Future.wait([
         for (final boxName in StorageKeys.allBoxes)
           Hive.deleteBoxFromDisk(boxName),
       ]);
-      _boxes.clear();
+
+      _logger.i('All Hive storage cleared successfully');
     } catch (e, stackTrace) {
       _logger.e('Failed to clear all Hive storage', e, stackTrace);
       throw CacheException('Failed to clear Hive storage: $e');
@@ -340,11 +387,42 @@ class HiveStorageService implements IStorageService {
       throw CacheException('Failed to dispose Hive storage: $e');
     }
   }
+}
 
-  Future<Box<T>> _getBox<T>(String boxName) async {
-    if (!_boxes.containsKey(boxName) || !_boxes[boxName]!.isOpen) {
-      _boxes[boxName] = await _openBoxWithRetry<T>(boxName);
+/// Extension cho debug
+extension HiveStorageServiceDebugX on HiveStorageService {
+  /// Clear tất cả storage (chỉ dùng trong debug)
+  Future<void> debugClearAllStorage() async {
+    try {
+      _logger.w('🧹 Clearing all storage...');
+
+      // 1. Clear all Hive boxes
+      await clear();
+
+      // 2. Delete all boxes from disk
+      await Hive.deleteFromDisk();
+
+      // 3. Re-initialize storage
+      await init();
+
+      _logger.i('✨ All storage cleared successfully');
+    } catch (e, stackTrace) {
+      _logger.e('Failed to clear storage during debug', e, stackTrace);
+      rethrow;
     }
-    return _boxes[boxName] as Box<T>;
+  }
+
+  /// In ra trạng thái của tất cả boxes (chỉ dùng trong debug)
+  void debugPrintBoxesStatus() {
+    _logger.d('📦 Boxes status:');
+    for (final boxName in StorageKeys.allBoxes) {
+      final box = _boxes[boxName];
+      if (box != null) {
+        _logger.d(
+            '  - $boxName: ${box.isOpen ? 'open' : 'closed'}, ${box.length} items');
+      } else {
+        _logger.d('  - $boxName: not initialized');
+      }
+    }
   }
 }

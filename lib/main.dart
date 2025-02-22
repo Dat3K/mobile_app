@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/router/router.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
+import 'package:mobile_app/core/widgets/debug_menu.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:path_provider/path_provider.dart';
@@ -77,7 +78,69 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      builder: DevicePreview.appBuilder,
+      builder: (context, child) {
+        // Wrap với DevicePreview trong debug mode
+        Widget app = DevicePreview.appBuilder(context, child);
+
+        // Thêm debug menu trong debug mode
+        if (kDebugMode) {
+          app = Scaffold(
+            body: Stack(
+              children: [
+                app,
+                Positioned(
+                  right: 0,
+                  top: 100,
+                  child: Builder(
+                    builder: (context) => DebugButton(
+                      onPressed: () {
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            endDrawer: const DebugMenu(),
+          );
+        }
+
+        return app;
+      },
+    );
+  }
+}
+
+/// Button để mở debug menu
+class DebugButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const DebugButton({
+    super.key,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.8),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              bottomLeft: Radius.circular(8),
+            ),
+          ),
+          child: const Icon(
+            Icons.bug_report,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }
