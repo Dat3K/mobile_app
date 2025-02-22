@@ -7,8 +7,8 @@ class StudentHomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authControllerProvider);
-    final user = authState.user;
+    final user = ref.watch(currentUserProvider);
+    final authState = ref.watch(authNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -16,11 +16,11 @@ class StudentHomePage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            onPressed: () => ref.read(authNotifierProvider.notifier).logout(),
           ),
         ],
       ),
-      body: authState.isLoading
+      body: ref.watch(isLoadingProvider)
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),

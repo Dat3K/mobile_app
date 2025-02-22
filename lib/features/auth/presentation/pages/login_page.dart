@@ -35,9 +35,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   void _onLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authControllerProvider.notifier).login(
-            _emailController.text.trim(),
-            _passwordController.text,
+      ref.read(authNotifierProvider.notifier).login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
           );
       FocusManager.instance.primaryFocus?.unfocus();
     }
@@ -45,9 +45,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
+    final authState = ref.watch(authNotifierProvider);
 
-    ref.listen(authControllerProvider, (previous, next) {
+    ref.listen(authNotifierProvider, (previous, next) {
       // Handle errors
       if (next.failure != null) {
           ShadToaster.of(context).show(

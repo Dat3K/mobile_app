@@ -1,23 +1,28 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/usecases/login_usecase.dart';
-import '../../domain/usecases/logout_usecase.dart';
-import '../../domain/usecases/get_current_user_usecase.dart';
+import 'package:mobile_app/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:mobile_app/features/auth/domain/usecases/login_usecase.dart';
+import 'package:mobile_app/features/auth/domain/usecases/logout_usecase.dart';
 import 'repository_providers.dart';
 
-/// Provider cho Login Use Case
-final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
+part 'usecase_providers.g.dart';
+
+/// Provider cho LoginUseCase
+@riverpod
+LoginUseCase loginUseCase(ref) {
   final repository = ref.watch(authRepositoryProvider);
   return LoginUseCase(repository);
-});
+}
 
-/// Provider cho Logout Use Case
-final logoutUseCaseProvider = Provider<LogoutUseCase>((ref) {
+/// Provider cho LogoutUseCase
+@riverpod
+LogoutUseCase logoutUseCase(ref) {
   final repository = ref.watch(authRepositoryProvider);
   return LogoutUseCase(repository);
-});
+}
 
-/// Provider cho Get Current User Use Case
-final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
+/// Provider cho CheckAuthUseCase
+@riverpod
+GetCurrentUserUseCase getCurrentUserUseCase(ref) {
   final repository = ref.watch(authRepositoryProvider);
   return GetCurrentUserUseCase(repository);
-}); 
+} 
