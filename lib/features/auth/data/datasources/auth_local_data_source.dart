@@ -1,4 +1,3 @@
-import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
@@ -13,18 +12,15 @@ abstract class IAuthLocalDataSource {
 }
 
 class AuthLocalDataSource implements IAuthLocalDataSource {
-  final CookieService _cookieService;
   final SecureStorageService _secureStorage;
   final HiveStorageService _hiveStorage;
   final LoggerService _logger;
 
   AuthLocalDataSource({
     required HiveStorageService hiveStorage,
-    required CookieService cookieService,
     required SecureStorageService secureStorage,
     required LoggerService logger,
   })  : _hiveStorage = hiveStorage,
-        _cookieService = cookieService,
         _secureStorage = secureStorage,
         _logger = logger;
 
@@ -49,15 +45,9 @@ class AuthLocalDataSource implements IAuthLocalDataSource {
 
   @override
   Future<void> clearAllData() async {
-    // Clear data in sequence to avoid race conditions
-    // 1. Clear secure storage first (tokens, etc)
-    await _secureStorage.deleteAll();
-    
-    // 2. Clear cookies after tokens
-    await _cookieService.clearCookies();
-    
-    // 3. Finally clear user data
-    await clearUser();
+    await _secureStorage.delete(StorageKeys.csrfTokenKey);
+    await _secureStorage.delete(StorageKeys.cookiePrefix);
+    await _hiveStorage.clear();
     _logger.i('All data cleared from local storage');
   }
 }

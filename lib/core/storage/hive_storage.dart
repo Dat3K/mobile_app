@@ -395,16 +395,16 @@ extension HiveStorageServiceDebugX on HiveStorageService {
   Future<void> debugClearAllStorage() async {
     try {
       _logger.w('🧹 Clearing all storage...');
-
+      
       // 1. Clear all Hive boxes
       await clear();
-
+      
       // 2. Delete all boxes from disk
       await Hive.deleteFromDisk();
-
+      
       // 3. Re-initialize storage
       await init();
-
+      
       _logger.i('✨ All storage cleared successfully');
     } catch (e, stackTrace) {
       _logger.e('Failed to clear storage during debug', e, stackTrace);
@@ -414,15 +414,38 @@ extension HiveStorageServiceDebugX on HiveStorageService {
 
   /// In ra trạng thái của tất cả boxes (chỉ dùng trong debug)
   void debugPrintBoxesStatus() {
-    _logger.d('📦 Boxes status:');
-    for (final boxName in StorageKeys.allBoxes) {
-      final box = _boxes[boxName];
-      if (box != null) {
-        _logger.d(
-            '  - $boxName: ${box.isOpen ? 'open' : 'closed'}, ${box.length} items');
+    try {
+      _logger.w('🧹 Checking Hive storage status...');
+      
+      final buffer = StringBuffer();
+      buffer.writeln('\n📦 Hive Storage Status:');
+      
+      final totalBoxes = _boxes.length;
+      buffer.writeln('Total boxes: $totalBoxes');
+      
+      if (totalBoxes > 0) {
+        buffer.writeln('\nBoxes status:');
+        for (final boxName in StorageKeys.allBoxes) {
+          final box = _boxes[boxName];
+          if (box != null) {
+            final status = box.isOpen ? 'open' : 'closed';
+            final itemCount = box.isOpen ? box.length : 'N/A';
+            buffer.writeln('  - $boxName: $status, $itemCount items');
+          } else {
+            buffer.writeln('  - $boxName: not initialized');
+          }
+        }
       } else {
-        _logger.d('  - $boxName: not initialized');
+        buffer.writeln('No boxes initialized');
       }
+      
+      buffer.writeln('\n✨ Hive storage status check completed');
+      
+      // In tất cả thông tin một lần
+      _logger.i(buffer.toString());
+    } catch (e, stackTrace) {
+      _logger.e('Failed to check Hive storage status', e, stackTrace);
+      rethrow;
     }
   }
 }

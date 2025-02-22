@@ -20,6 +20,12 @@ class StorageKeys {
   static const String onboardingKey = 'onboarding_completed';
   static const String lastSyncKey = 'last_sync';
 
+  // CSRF Keys
+  static const String csrfTokenKey = 'csrf_token';
+
+  // Cookie Keys
+  static const String cookiePrefix = 'cookie_';
+
   // Version Control
   static const String versionKey = 'box_version';
   static const int currentVersion = 1;
@@ -54,5 +60,6 @@ class StorageKeys {
         userBox,
         authTokenKey,
         refreshTokenKey,
+        csrfTokenKey,
       ];
 } 

@@ -63,7 +63,7 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
   @override
   Future<void> logout() async {
     try {
-      await _client.post('/auth/logout');
+      await _client.post('/logout');
     } catch (e) {
       throw AuthFailure.requiresLogin();
     }

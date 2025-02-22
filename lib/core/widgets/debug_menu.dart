@@ -75,6 +75,21 @@ class DebugMenu extends ConsumerWidget {
               }
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.security),
+            title: const Text('Secure Storage Status'),
+            subtitle: const Text('Xem trạng thái secure storage'),
+            onTap: () async {
+              await ref.read(secureStorageServiceProvider).debugPrintStorageStatus();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('🔐 Đã in trạng thái secure storage vào console'),
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
     );

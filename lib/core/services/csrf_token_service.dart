@@ -1,3 +1,4 @@
+import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -15,7 +16,6 @@ CsrfTokenService csrfTokenService(ref) {
 
 /// Service để quản lý CSRF token
 class CsrfTokenService{
-  static const String _tokenKey = 'csrf_token';
   final SecureStorageService _storage;
   final LoggerService _logger;
 
@@ -27,7 +27,7 @@ class CsrfTokenService{
 
   Future<String?> getToken() async {
     try {
-      final token = await _storage.read(_tokenKey);
+      final token = await _storage.read(StorageKeys.csrfTokenKey);
       _logger.d('Đã lấy CSRF token${token != null ? "" : " (null)"}');
       return token;
     } catch (e) {
@@ -38,7 +38,7 @@ class CsrfTokenService{
 
   Future<void> saveToken(String token) async {
     try {
-      await _storage.write(_tokenKey, token);
+      await _storage.write(StorageKeys.csrfTokenKey, token);
       _logger.d('Đã lưu CSRF token mới');
     } catch (e) {
       _logger.e('Lỗi khi lưu CSRF token: $e');
@@ -48,7 +48,7 @@ class CsrfTokenService{
 
   Future<void> deleteToken() async {
     try {
-      await _storage.delete(_tokenKey);
+      await _storage.delete(StorageKeys.csrfTokenKey);
       _logger.d('Đã xóa CSRF token');
     } catch (e) {
       _logger.e('Lỗi khi xóa CSRF token: $e');

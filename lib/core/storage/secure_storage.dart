@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:mobile_app/core/utils/logger.dart';
 
 part 'secure_storage.g.dart';
 
@@ -13,21 +14,31 @@ FlutterSecureStorage secureStorage(ref) {
 @Riverpod(keepAlive: true)
 SecureStorageService secureStorageService(ref) {
   final storage = ref.watch(secureStorageProvider);
-  return SecureStorageService(storage: storage);
+  final logger = ref.watch(loggerServiceProvider);
+  return SecureStorageService(
+    storage: storage,
+    logger: logger,
+  );
 }
 
 /// Service để quản lý storage bảo mật
 class SecureStorageService {
   final FlutterSecureStorage _storage;
+  final LoggerService _logger;
 
   SecureStorageService({
     required FlutterSecureStorage storage,
-  }) : _storage = storage;
+    required LoggerService logger,
+  })  : _storage = storage,
+        _logger = logger;
 
   Future<String?> read(String key) async {
     try {
-      return await _storage.read(key: key);
-    } catch (e) {
+      final value = await _storage.read(key: key);
+      _logger.d('Read from secure storage: $key');
+      return value;
+    } catch (e, stackTrace) {
+      _logger.e('Error reading from secure storage', e, stackTrace);
       return null;
     }
   }
@@ -35,7 +46,9 @@ class SecureStorageService {
   Future<void> write(String key, String value) async {
     try {
       await _storage.write(key: key, value: value);
-    } catch (e) {
+      _logger.d('Written to secure storage: $key');
+    } catch (e, stackTrace) {
+      _logger.e('Error writing to secure storage', e, stackTrace);
       rethrow;
     }
   }
@@ -43,7 +56,9 @@ class SecureStorageService {
   Future<void> delete(String key) async {
     try {
       await _storage.delete(key: key);
-    } catch (e) {
+      _logger.d('Deleted from secure storage: $key');
+    } catch (e, stackTrace) {
+      _logger.e('Error deleting from secure storage', e, stackTrace);
       rethrow;
     }
   }
@@ -51,16 +66,55 @@ class SecureStorageService {
   Future<void> deleteAll() async {
     try {
       await _storage.deleteAll();
-    } catch (e) {
+      _logger.i('All secure storage data deleted');
+    } catch (e, stackTrace) {
+      _logger.e('Error deleting all secure storage data', e, stackTrace);
       rethrow;
     }
   }
 
   Future<Map<String, String>> readAll() async {
     try {
-      return await _storage.readAll();
-    } catch (e) {
+      final data = await _storage.readAll();
+      _logger.d('Read all secure storage data: ${data.length} items');
+      return data;
+    } catch (e, stackTrace) {
+      _logger.e('Error reading all secure storage data', e, stackTrace);
       return {};
+    }
+  }
+}
+
+/// Extension cho debug
+extension SecureStorageServiceDebugX on SecureStorageService {
+  /// In ra trạng thái của secure storage
+  Future<void> debugPrintStorageStatus() async {
+    try {
+      _logger.w('🧹 Checking secure storage status...');
+      
+      final allData = await readAll();
+      final totalItems = allData.length;
+      
+      final buffer = StringBuffer();
+      buffer.writeln('\n📦 Secure Storage Status:');
+      buffer.writeln('Total items: $totalItems');
+      
+      if (totalItems > 0) {
+        buffer.writeln('\nKeys stored:');
+        for (final key in allData.keys) {
+          buffer.writeln('  - $key');
+        }
+      } else {
+        buffer.writeln('No items stored');
+      }
+      
+      buffer.writeln('\n✨ Secure storage status check completed');
+      
+      // In tất cả thông tin một lần
+      _logger.i(buffer.toString());
+    } catch (e, stackTrace) {
+      _logger.e('Failed to check secure storage status', e, stackTrace);
+      rethrow;
     }
   }
 } 
