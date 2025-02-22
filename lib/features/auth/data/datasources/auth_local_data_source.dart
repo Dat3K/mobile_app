@@ -26,27 +26,26 @@ class AuthLocalDataSource implements IAuthLocalDataSource {
 
   @override
   Future<void> saveUser(UserModel user) async {
-    await _hiveStorage.put<UserModel>(StorageKeys.userIdKey, user, StorageKeys.userBox);
+    await _hiveStorage.put<UserModel>(StorageKeys.userKey, user, StorageKeys.userBox);
     _logger.i('User saved to local storage');
   }
 
   @override
   Future<UserModel?> getUser() async {
-    final user = await _hiveStorage.get<UserModel>(StorageKeys.userIdKey, StorageKeys.userBox);
+    final user = await _hiveStorage.get<UserModel>(StorageKeys.userKey, StorageKeys.userBox);
     _logger.i('User retrieved from local storage');
     return user;
   }
 
   @override
   Future<void> clearUser() async {
-    await _hiveStorage.delete(StorageKeys.userIdKey, StorageKeys.userBox);
+    await _hiveStorage.delete(StorageKeys.userKey, StorageKeys.userBox);
     _logger.i('User deleted from local storage');
   }
 
   @override
   Future<void> clearAllData() async {
-    await _secureStorage.delete(StorageKeys.csrfTokenKey);
-    await _secureStorage.delete(StorageKeys.cookiePrefix);
+    await _secureStorage.deleteSecurityTokens();
     await _hiveStorage.clear();
     _logger.i('All data cleared from local storage');
   }

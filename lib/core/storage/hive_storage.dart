@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
@@ -34,22 +33,13 @@ import 'package:mobile_app/features/notification/data/models/notification_type_m
 import 'package:mobile_app/features/document/data/models/document_model.dart';
 import 'package:mobile_app/features/document/data/models/document_type_model.dart';
 
-import '../services/encryption_service.dart';
-import '../services/hive_migration_service.dart';
-
 part 'hive_storage.g.dart';
 
 /// Provider cho HiveStorageService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
 HiveStorageService hiveStorageService(ref) {
   final logger = ref.watch(loggerServiceProvider);
-  final encryption = ref.watch(encryptionServiceProvider);
-  final migration = ref.watch(hiveMigrationServiceProvider);
-  return HiveStorageService(
-    logger: logger,
-    encryption: encryption,
-    migration: migration,
-  );
+  return HiveStorageService(logger: logger);
 }
 
 abstract class IStorageService {
@@ -67,18 +57,12 @@ abstract class IStorageService {
 
 class HiveStorageService implements IStorageService {
   final LoggerService _logger;
-  final EncryptionService _encryption;
-  final HiveMigrationService _migration;
   final Map<String, Timer> _compactionTimers = {};
   final Map<String, Box> _boxes = {};
 
   HiveStorageService({
     required LoggerService logger,
-    required EncryptionService encryption,
-    required HiveMigrationService migration,
-  })  : _logger = logger,
-        _encryption = encryption,
-        _migration = migration;
+  }) : _logger = logger;
 
   @override
   Future<void> init() async {
@@ -88,27 +72,6 @@ class HiveStorageService implements IStorageService {
 
       // Register adapters if not already registered
       _registerAdapters();
-
-      // Get encryption key for secure boxes
-      final encryptionKey = await _encryption.getEncryptionKey();
-
-      // Open all boxes
-      await Future.wait(
-        StorageKeys.allBoxes.map((boxName) async {
-          final isSecure = StorageKeys.secureBoxes.contains(boxName);
-          final box = await _openBoxWithRetry<dynamic>(
-            boxName,
-            encryptionKey: isSecure ? encryptionKey : null,
-          );
-          _boxes[boxName] = box;
-
-          // Set up compaction timer
-          _setupCompactionTimer(boxName);
-
-          // Check and perform migrations
-          await _migration.checkAndMigrate(box);
-        }),
-      );
 
       _logger.i('Hive storage initialized successfully');
     } catch (e, stackTrace) {
@@ -180,7 +143,6 @@ class HiveStorageService implements IStorageService {
 
   Future<Box<T>> _openBoxWithRetry<T>(
     String boxName, {
-    Uint8List? encryptionKey,
     int maxRetries = StorageKeys.maxRetryAttempts,
   }) async {
     int attempts = 0;
@@ -194,11 +156,7 @@ class HiveStorageService implements IStorageService {
           // Nếu box đã mở nhưng không đúng kiểu, đóng và mở lại
           await box.close();
         }
-        return await Hive.openBox<T>(
-          boxName,
-          encryptionCipher:
-              encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
-        );
+        return await Hive.openBox<T>(boxName);
       } catch (e, stackTrace) {
         attempts++;
         _logger.w(
@@ -244,21 +202,26 @@ class HiveStorageService implements IStorageService {
 
   Future<Box<T>> _getBox<T>(String boxName) async {
     try {
-      if (!_boxes.containsKey(boxName) || !_boxes[boxName]!.isOpen) {
-        _boxes[boxName] = await _openBoxWithRetry<T>(boxName);
+      // Kiểm tra xem box đã được mở và còn hợp lệ không
+      if (_boxes.containsKey(boxName)) {
+        final box = _boxes[boxName];
+        if (box != null && box.isOpen) {
+          if (box is Box<T>) {
+            return box;
+          }
+          // Nếu box không đúng kiểu, đóng nó đi
+          await box.close();
+        }
       }
 
-      final box = _boxes[boxName];
-      if (box is Box<T>) {
-        return box;
-      }
-
-      // Nếu box không đúng kiểu, đóng và mở lại với kiểu đúng
-      if (box != null) {
-        await box.close();
-      }
-      _boxes[boxName] = await _openBoxWithRetry<T>(boxName);
-      return _boxes[boxName] as Box<T>;
+      // Mở box mới với retry logic
+      final box = await _openBoxWithRetry<T>(boxName);
+      _boxes[boxName] = box;
+      
+      // Set up compaction timer cho box mới
+      _setupCompactionTimer(boxName);
+      
+      return box;
     } catch (e, stackTrace) {
       _logger.e('Failed to get box $boxName', e, stackTrace);
       rethrow;
@@ -413,38 +376,87 @@ extension HiveStorageServiceDebugX on HiveStorageService {
   }
 
   /// In ra trạng thái của tất cả boxes (chỉ dùng trong debug)
-  void debugPrintBoxesStatus() {
+  Future<void> debugPrintBoxesStatus() async {
     try {
-      _logger.w('🧹 Checking Hive storage status...');
+      _logger.w('🔍 Checking Hive storage status...');
       
       final buffer = StringBuffer();
-      buffer.writeln('\n📦 Hive Storage Status:');
+      buffer.writeln('\n📦 Hive Storage Status Report');
+      buffer.writeln('═════════════════════════\n');
       
       final totalBoxes = _boxes.length;
-      buffer.writeln('Total boxes: $totalBoxes');
+      final openBoxes = _boxes.values.where((box) => box.isOpen).length;
+      final totalItems = _boxes.values
+          .where((box) => box.isOpen)
+          .fold(0, (sum, box) => sum + box.length);
       
+      // Tổng quan
+      buffer.writeln('📊 Overview:');
+      buffer.writeln('  • Total Boxes: $totalBoxes');
+      buffer.writeln('  • Open Boxes: $openBoxes');
+      buffer.writeln('  • Total Items: $totalItems\n');
+      
+      // Chi tiết từng box
       if (totalBoxes > 0) {
-        buffer.writeln('\nBoxes status:');
+        buffer.writeln('📋 Detailed Box Information:');
+        buffer.writeln('──────────────────────────\n');
+        
         for (final boxName in StorageKeys.allBoxes) {
           final box = _boxes[boxName];
           if (box != null) {
-            final status = box.isOpen ? 'open' : 'closed';
+            final status = box.isOpen ? '🟢 Open' : '🔴 Closed';
             final itemCount = box.isOpen ? box.length : 'N/A';
-            buffer.writeln('  - $boxName: $status, $itemCount items');
+            
+            buffer.writeln('📎 Box: $boxName');
+            buffer.writeln('  • Status: $status');
+            buffer.writeln('  • Items: $itemCount');
+            
+            if (box.isOpen && box.length > 0) {
+              buffer.writeln('  • Content:');
+              try {
+                for (final key in box.keys) {
+                  final value = box.get(key);
+                  String displayValue;
+                  
+                  if (value == null) {
+                    displayValue = 'null';
+                  } else if (value is Map || value is List) {
+                    // Định dạng JSON cho Map và List
+                    displayValue = value.toString().replaceAll(RegExp(r'\s+'), ' ');
+                  } else {
+                    displayValue = value.toString();
+                  }
+                  
+                  // Giới hạn độ dài của displayValue
+                  if (displayValue.length > 100) {
+                    displayValue = '${displayValue.substring(0, 97)}...';
+                  }
+                  
+                  buffer.writeln('    - $key: $displayValue');
+                }
+              } catch (e) {
+                buffer.writeln('    ⚠️ Error reading box content: $e');
+              }
+            } else if (box.isOpen) {
+              buffer.writeln('  • Content: Empty');
+            }
+            buffer.writeln(''); // Dòng trống giữa các box
           } else {
-            buffer.writeln('  - $boxName: not initialized');
+            buffer.writeln('📎 Box: $boxName');
+            buffer.writeln('  • Status: ⚫ Not Initialized\n');
           }
         }
       } else {
-        buffer.writeln('No boxes initialized');
+        buffer.writeln('ℹ️ No boxes are initialized');
       }
       
-      buffer.writeln('\n✨ Hive storage status check completed');
+      buffer.writeln('═════════════════════════');
+      buffer.writeln('✨ Storage status check completed');
       
       // In tất cả thông tin một lần
       _logger.i(buffer.toString());
     } catch (e, stackTrace) {
-      _logger.e('Failed to check Hive storage status', e, stackTrace);
+      _logger.e('❌ Failed to check Hive storage status', e, stackTrace);
       rethrow;
     }
   }

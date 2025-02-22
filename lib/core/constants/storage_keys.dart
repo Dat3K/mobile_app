@@ -11,28 +11,14 @@ class StorageKeys {
   static const String documentBox = 'documents';
   static const String settingsBox = 'settings';
 
-  // Common Keys
-  static const String authTokenKey = 'auth_token';
-  static const String refreshTokenKey = 'refresh_token';
-  static const String userIdKey = 'user_id';
-  static const String themeKey = 'theme';
-  static const String localeKey = 'locale';
-  static const String onboardingKey = 'onboarding_completed';
-  static const String lastSyncKey = 'last_sync';
+  // Auth Keys
+  static const String userKey = 'user';
 
   // CSRF Keys
   static const String csrfTokenKey = 'csrf_token';
 
   // Cookie Keys
   static const String cookiePrefix = 'cookie_';
-
-  // Version Control
-  static const String versionKey = 'box_version';
-  static const int currentVersion = 1;
-
-  // Encryption
-  static const String encryptionKeyKey = 'hive_encryption_key';
-  static const int encryptionKeyLength = 32;
 
   // Box Maintenance
   static const Duration compactionInterval = Duration(days: 1);
@@ -53,13 +39,5 @@ class StorageKeys {
         notificationBox,
         documentBox,
         settingsBox,
-      ];
-
-  // Get secure box names (boxes that need encryption)
-  static List<String> get secureBoxes => [
-        userBox,
-        authTokenKey,
-        refreshTokenKey,
-        csrfTokenKey,
       ];
 } 

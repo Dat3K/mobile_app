@@ -7,7 +7,6 @@ import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/widgets/debug_menu.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:device_preview/device_preview.dart';
 
 void main() async {
@@ -17,11 +16,6 @@ void main() async {
 
     // Initialize EasyLocalization
     await EasyLocalization.ensureInitialized();
-
-    // Ensure path_provider is initialized
-    if (!kIsWeb) {
-      await getApplicationDocumentsDirectory();
-    }
 
     // Create ProviderContainer for initialization
     final container = ProviderContainer();
@@ -129,7 +123,7 @@ class DebugButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.red.withOpacity(0.8),
+            color: Colors.red.shade300,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(8),
               bottomLeft: Radius.circular(8),

@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 
@@ -62,6 +63,27 @@ class SecureStorageService {
       rethrow;
     }
   }
+
+  Future<void> deleteSecurityTokens() async {
+    try {
+      final allData = await readAll();
+      final securityKeys = allData.keys.where((key) => 
+        key.startsWith(StorageKeys.cookiePrefix) || 
+        key == StorageKeys.csrfTokenKey
+      );
+      
+      await Future.wait([
+        for (final key in securityKeys)
+          delete(key),
+      ]);
+      
+      _logger.i('All security tokens (cookies and CSRF) deleted from secure storage');
+    } catch (e, stackTrace) {
+      _logger.e('Error deleting security tokens from secure storage', e, stackTrace);
+      rethrow;
+    }
+  }
+
 
   Future<void> deleteAll() async {
     try {

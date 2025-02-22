@@ -107,19 +107,30 @@ class CsrfInterceptor extends Interceptor {
     ResponseInterceptorHandler handler,
     int retryCount,
   ) async {
-    final originalRequest = response.requestOptions;
-    originalRequest.extra['csrfRetryCount'] = retryCount + 1;
+    try {
+      final originalRequest = response.requestOptions;
+      originalRequest.extra['csrfRetryCount'] = retryCount + 1;
 
-    await _fetchAndSaveToken();
-    final newToken = await _csrfTokenService.getToken();
+      await _fetchAndSaveToken();
+      final newToken = await _csrfTokenService.getToken();
 
-    if (newToken != null) {
-      originalRequest.headers[CsrfConstants.csrfHeaderKey] = newToken;
-      _logger.d('Retrying request with new CSRF token');
-      final retryResponse = await _dio.fetch(originalRequest);
-      handler.next(retryResponse);
-    } else {
-      throw Exception('Không thể lấy token mới sau khi refresh');
+      if (newToken != null) {
+        originalRequest.headers[CsrfConstants.csrfHeaderKey] = newToken;
+        _logger.d('Retrying request with new CSRF token');
+        
+        final retryResponse = await _dio.fetch(originalRequest);
+        handler.next(retryResponse);
+      } else {
+        throw Exception('Không thể lấy token mới sau khi refresh');
+      }
+    } catch (e, stackTrace) {
+      _logger.e('Failed to refresh token and retry request', e, stackTrace);
+      handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          error: 'Lỗi khi refresh token và retry request: $e',
+        ),
+      );
     }
   }
 
