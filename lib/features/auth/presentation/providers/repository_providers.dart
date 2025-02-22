@@ -7,7 +7,7 @@ part 'repository_providers.g.dart';
 
 /// Provider cho AuthRepository
 @Riverpod(keepAlive: true)
-IAuthRepository authRepository(AuthRepositoryRef ref) {
+IAuthRepository authRepository(ref) {
   final localDataSource = ref.watch(authLocalDataSourceProvider);
   final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
   

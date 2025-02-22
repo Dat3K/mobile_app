@@ -9,7 +9,7 @@ part 'event_participation_model.g.dart';
 part 'event_participation_model.freezed.dart';
 
 @freezed
-@HiveType(typeId: HiveTypeIds.event)
+@HiveType(typeId: HiveTypeIds.eventParticipation)
 class EventParticipationModel with _$EventParticipationModel {
   const factory EventParticipationModel({
     @HiveField(0) required String id,

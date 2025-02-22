@@ -1,4 +1,3 @@
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';

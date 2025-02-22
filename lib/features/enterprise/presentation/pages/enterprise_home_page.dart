@@ -53,28 +53,24 @@ class _EnterpriseDashboardGrid extends StatelessWidget {
           icon: Icons.work,
           title: 'Job Postings',
           onTap: () {
-            // TODO: Navigate to job postings
           },
         ),
         _DashboardCard(
           icon: Icons.people_outline,
           title: 'Applicants',
           onTap: () {
-            // TODO: Navigate to applicants
           },
         ),
         _DashboardCard(
           icon: Icons.business,
           title: 'Company Profile',
           onTap: () {
-            // TODO: Navigate to company profile
           },
         ),
         _DashboardCard(
           icon: Icons.analytics,
           title: 'Analytics',
           onTap: () {
-            // TODO: Navigate to analytics
           },
         ),
       ],

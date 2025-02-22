@@ -42,7 +42,3 @@ class UserModel with _$UserModel {
         lastLogin: entity.lastLogin,
       );
 }
-
-// JSON conversion helpers
-UserRoleModel _roleFromJson(dynamic json) => UserRoleModel.fromJson(json as String);
-String _roleToJson(UserRoleModel role) => role.toJson();

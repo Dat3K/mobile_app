@@ -6,7 +6,7 @@ part 'storage_providers.g.dart';
 
 /// Provider cho auth storage services
 @riverpod
-AuthStorageServices authStorageServices(AuthStorageServicesRef ref) {
+AuthStorageServices authStorageServices(ref) {
   final hiveStorage = ref.watch(hiveStorageServiceProvider);
   final secureStorage = ref.watch(secureStorageServiceProvider);
   return AuthStorageServices(hiveStorage, secureStorage);

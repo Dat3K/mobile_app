@@ -58,30 +58,25 @@ class _StudentDashboardGrid extends StatelessWidget {
           icon: Icons.school,
           title: 'My Courses',
           onTap: () {
-            authState.failure != null
-                ? print(authState.failure?.message)
-                : print(authState.user?.email);
+           
           },
         ),
         _DashboardCard(
           icon: Icons.assignment_turned_in,
           title: 'Assignments',
           onTap: () {
-            // TODO: Navigate to assignments
           },
         ),
         _DashboardCard(
           icon: Icons.grade,
           title: 'Grades',
           onTap: () {
-            // TODO: Navigate to grades
           },
         ),
         _DashboardCard(
           icon: Icons.event,
           title: 'Events',
           onTap: () {
-            // TODO: Navigate to events
           },
         ),
       ],

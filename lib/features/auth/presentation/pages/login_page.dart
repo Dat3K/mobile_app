@@ -157,7 +157,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ShadButton(
                       child: const Text('Get path'),
                       onPressed: () {
-                        print(authState.user);
                       },
                     ),
 
