@@ -1,40 +1,112 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/router/router.dart';
 
-final navigationServiceProvider = Provider<NavigationService>((ref) {
+part 'navigation_service.g.dart';
+
+/// Provider cho NavigationService - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+NavigationService navigationService(ref) {
   final router = ref.watch(routerProvider);
   return NavigationService(router);
-}); 
+}
 
+/// Service để quản lý navigation trong ứng dụng
 class NavigationService {
   final GoRouter _router;
 
   NavigationService(this._router);
 
-  void goNamed(String name, {Map<String, String>? params}) {
-    _router.goNamed(name, pathParameters: params ?? {});
+  /// Navigate đến route với name
+  void goNamed(
+    String name, {
+    Map<String, String>? params,
+    Map<String, dynamic>? queryParams,
+    Object? extra,
+  }) {
+    _router.goNamed(
+      name,
+      pathParameters: params ?? {},
+      queryParameters: queryParams ?? {},
+      extra: extra,
+    );
   }
 
-  void go(String path) {
-    _router.go(path);
+  /// Navigate đến route với path
+  void go(
+    String path, {
+    Map<String, dynamic>? queryParams,
+    Object? extra,
+  }) {
+    _router.go(
+      path,
+      extra: extra,
+    );
   }
 
-  void pushNamed(String name, {Map<String, String>? params}) {
-    _router.pushNamed(name, pathParameters: params ?? {});
+  /// Push route mới với name
+  void pushNamed(
+    String name, {
+    Map<String, String>? params,
+    Map<String, dynamic>? queryParams,
+    Object? extra,
+  }) {
+    _router.pushNamed(
+      name,
+      pathParameters: params ?? {},
+      queryParameters: queryParams ?? {},
+      extra: extra,
+    );
   }
 
-  void push(String path) {
-    _router.push(path);
+  /// Push route mới với path
+  void push(
+    String path, {
+    Map<String, dynamic>? queryParams,
+    Object? extra,
+  }) {
+    _router.push(
+      path,
+      extra: extra,
+    );
   }
 
-  void pop() {
-    _router.pop();
+  /// Pop route hiện tại
+  void pop<T extends Object?>([T? result]) {
+    _router.pop(result);
   }
 
-  void replace(String path) {
-    _router.replace(path);
+  /// Replace route hiện tại
+  void replace(
+    String path, {
+    Map<String, dynamic>? queryParams,
+    Object? extra,
+  }) {
+    _router.replace(
+      path,
+      extra: extra,
+    );
   }
 
-  String get currentLocation => _router.routerDelegate.currentConfiguration.uri.toString();
+  /// Replace route hiện tại với named route
+  void replaceNamed(
+    String name, {
+    Map<String, String>? params,
+    Map<String, dynamic>? queryParams,
+    Object? extra,
+  }) {
+    _router.replaceNamed(
+      name,
+      pathParameters: params ?? {},
+      queryParameters: queryParams ?? {},
+      extra: extra,
+    );
+  }
+
+  /// Kiểm tra xem có thể pop không
+  bool canPop() => _router.canPop();
+
+  /// Lấy location hiện tại
+  String get currentLocation => 
+    _router.routerDelegate.currentConfiguration.uri.toString();
 } 

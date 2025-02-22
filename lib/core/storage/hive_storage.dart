@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/constants/hive_type_ids.dart';
 import 'package:mobile_app/core/error/exceptions.dart';
@@ -35,15 +36,19 @@ import 'package:mobile_app/features/notification/data/models/notification_type_m
 import 'package:mobile_app/features/document/data/models/document_model.dart';
 import 'package:mobile_app/features/document/data/models/document_type_model.dart';
 
-import 'encryption_service.dart';
-import 'hive_migration_service.dart';
+import '../services/encryption_service.dart';
+import '../services/hive_migration_service.dart';
 
-final hiveStorageServiceProvider = Provider<HiveStorageService>((ref) {
+part 'hive_storage.g.dart';
+
+/// Provider cho HiveStorageService - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+HiveStorageService hiveStorageService(ref) {
   final logger = ref.watch(loggerServiceProvider);
   final encryption = ref.watch(encryptionServiceProvider);
   final migration = ref.watch(hiveMigrationServiceProvider);
   return HiveStorageService(logger, encryption, migration);
-});
+}
 
 abstract class IStorageService {
   Future<void> init();
@@ -178,7 +183,8 @@ class HiveStorageService implements IStorageService {
         }
         return await Hive.openBox<T>(
           boxName,
-          encryptionCipher: encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
+          encryptionCipher:
+              encryptionKey != null ? HiveAesCipher(encryptionKey) : null,
         );
       } catch (e, stackTrace) {
         attempts++;
@@ -304,7 +310,7 @@ class HiveStorageService implements IStorageService {
   Future<void> clear() async {
     try {
       await Future.wait([
-        for (final boxName in StorageKeys.allBoxes) 
+        for (final boxName in StorageKeys.allBoxes)
           Hive.deleteBoxFromDisk(boxName),
       ]);
       _boxes.clear();
@@ -325,7 +331,7 @@ class HiveStorageService implements IStorageService {
 
       // Close all boxes
       await Future.wait([
-        for (final box in _boxes.values) 
+        for (final box in _boxes.values)
           if (box.isOpen) box.close(),
       ]);
       _boxes.clear();
@@ -343,4 +349,4 @@ class HiveStorageService implements IStorageService {
     }
     return _boxes[boxName] as Box<T>;
   }
-} 
+}

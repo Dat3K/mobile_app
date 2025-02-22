@@ -1,21 +1,24 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/csrf_constants.dart';
-import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/network/rest/dio_client.dart';
-import 'package:mobile_app/core/security/csrf_token_service.dart';
+import 'package:mobile_app/core/services/csrf_token_service.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'dart:io' show Cookie;
 
-/// Provider cho CSRF interceptor
-final csrfInterceptorProvider = Provider<CsrfInterceptor>((ref) {
+part 'csrf_interceptor.g.dart';
+
+/// Provider cho CSRF interceptor - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+CsrfInterceptor csrfInterceptor(ref) {
   return CsrfInterceptor(
     dio: ref.watch(dioProvider),
     csrfTokenService: ref.watch(csrfTokenServiceProvider),
     cookieService: ref.watch(cookieServiceProvider),
     logger: ref.watch(loggerServiceProvider),
   );
-});
+}
 
 /// Interceptor để xử lý CSRF token trong các request
 class CsrfInterceptor extends Interceptor {

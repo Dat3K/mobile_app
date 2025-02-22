@@ -1,20 +1,24 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:gql_dio_link/gql_dio_link.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/network/rest/dio_client.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 
+part 'graphql_client.g.dart';
+
 /// Provider cho GraphQL cache options
-final graphQLCacheProvider = Provider<GraphQLCache>((ref) {
+@riverpod
+GraphQLCache graphQLCache(ref) {
   return GraphQLCache(
     store: HiveStore(),
     partialDataPolicy: PartialDataCachePolicy.accept,
   );
-});
+}
 
 /// Provider cho GraphQL policies
-final graphQLPoliciesProvider = Provider<DefaultPolicies>((ref) {
+@riverpod
+DefaultPolicies graphQLPolicies(ref) {
   return DefaultPolicies(
     query: Policies(
       fetch: FetchPolicy.networkOnly,
@@ -26,10 +30,11 @@ final graphQLPoliciesProvider = Provider<DefaultPolicies>((ref) {
       fetch: FetchPolicy.networkOnly,
     ),
   );
-});
+}
 
-/// Provider cho GraphQL client
-final graphQLClientProvider = Provider<GraphQLClient>((ref) {
+/// Provider cho GraphQL client - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+GraphQLClient graphQLClient(ref) {
   final dio = ref.watch(dioProvider);
   final logger = ref.watch(loggerServiceProvider);
   final cache = ref.watch(graphQLCacheProvider);
@@ -102,4 +107,4 @@ final graphQLClientProvider = Provider<GraphQLClient>((ref) {
     link: link,
     defaultPolicies: policies,
   );
-}); 
+} 

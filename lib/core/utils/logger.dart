@@ -1,10 +1,13 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-/// Provider cho LoggerService
-final loggerServiceProvider = Provider<LoggerService>((ref) {
+part 'logger.g.dart';
+
+/// Provider cho LoggerService - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+LoggerService loggerService(ref) {
   return LoggerService();
-});
+}
 
 /// Interface cho LoggerService
 abstract class ILoggerService {

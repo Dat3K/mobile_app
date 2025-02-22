@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/network/rest/dio_client.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import '../../data/datasources/auth_local_data_source.dart';

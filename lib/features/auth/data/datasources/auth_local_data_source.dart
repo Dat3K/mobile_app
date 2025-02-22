@@ -1,5 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/features/auth/data/models/user_model.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/core/error/failures.dart';
-import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/core/usecases/usecase.dart';
 import 'package:mobile_app/features/auth/domain/entities/user_entity.dart';

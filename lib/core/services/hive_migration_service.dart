@@ -1,13 +1,17 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/error/exceptions.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 
-final hiveMigrationServiceProvider = Provider<HiveMigrationService>((ref) {
+part 'hive_migration_service.g.dart';
+
+/// Provider cho HiveMigrationService
+@riverpod
+HiveMigrationService hiveMigrationService(ref) {
   final logger = ref.watch(loggerServiceProvider);
   return HiveMigrationService(logger);
-});
+}
 
 class HiveMigrationService {
   final LoggerService _logger;

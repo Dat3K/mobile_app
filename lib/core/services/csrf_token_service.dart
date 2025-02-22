@@ -1,14 +1,17 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 /// Provider cho CsrfTokenService
-final csrfTokenServiceProvider = Provider<CsrfTokenService>((ref) {
+part 'csrf_token_service.g.dart';
+
+@Riverpod(keepAlive: true)
+CsrfTokenService csrfTokenService(ref) {
   return CsrfTokenService(
     storage: ref.watch(secureStorageServiceProvider),
     logger: ref.watch(loggerServiceProvider),
   );
-});
+}
 
 /// Service để quản lý CSRF token
 class CsrfTokenService{

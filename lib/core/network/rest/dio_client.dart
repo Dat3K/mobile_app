@@ -1,17 +1,20 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
-import 'package:mobile_app/core/network/rest/cookie_service.dart';
+import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'http_client_interface.dart';
 import 'package:flutter/foundation.dart';
 
+part 'dio_client.g.dart';
+
 /// Provider cho cache options
-final cacheOptionsProvider = Provider<CacheOptions>((ref) {
+@riverpod
+CacheOptions cacheOptions(ref) {
   return CacheOptions(
     store: MemCacheStore(),
     policy: CachePolicy.request,
@@ -21,10 +24,11 @@ final cacheOptionsProvider = Provider<CacheOptions>((ref) {
     keyBuilder: CacheOptions.defaultCacheKeyBuilder,
     allowPostMethod: false,
   );
-});
+}
 
-/// Provider cho Dio client
-final dioProvider = Provider<Dio>((ref) {
+/// Provider cho Dio client - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+Dio dio(ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
@@ -61,20 +65,29 @@ final dioProvider = Provider<Dio>((ref) {
   ));
 
   return dio;
-});
+}
 
-// Provider cho DioClient
-final dioClientProvider = Provider<DioClient>((ref) {
+/// Provider cho DioClient - giữ instance trong suốt vòng đời ứng dụng
+@Riverpod(keepAlive: true)
+DioClient dioClient(ref) {
   final dio = ref.watch(dioProvider);
   final logger = ref.watch(loggerServiceProvider);
   final cookieService = ref.watch(cookieServiceProvider);
   final csrfInterceptor = ref.watch(csrfInterceptorProvider);
+
+  // Cleanup khi provider bị dispose
+  ref.onDispose(() {
+    final client = ref.state;
+    client.dispose();
+  });
+
   return DioClient(
-      dio: dio,
-      logger: logger,
-      cookieService: cookieService,
-      csrfInterceptor: csrfInterceptor);
-});
+    dio: dio,
+    logger: logger,
+    cookieService: cookieService,
+    csrfInterceptor: csrfInterceptor,
+  );
+}
 
 /// HTTP client sử dụng Dio với đầy đủ interceptor và cấu hình
 class DioClient implements IRestClient {
