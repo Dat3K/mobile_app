@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -23,7 +24,7 @@ class StudentHomePage extends ConsumerWidget {
       body: ref.watch(isLoadingProvider)
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -51,8 +52,8 @@ class _StudentDashboardGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
+      mainAxisSpacing: 16.h,
+      crossAxisSpacing: 16.h,
       children: [
         _DashboardCard(
           icon: Icons.school,
@@ -104,8 +105,8 @@ class _DashboardCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 48),
-            const SizedBox(height: 8),
+            Icon(icon, size: 48.sp),
+            SizedBox(height: 8.h),
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium,

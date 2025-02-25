@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -34,39 +35,58 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(
+        title: const Text('Register'),
+        toolbarHeight: 56.h,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.sp),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: _fullNameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Full Name',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 16.h,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Email',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 16.h,
+                ),
               ),
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Password',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 16.h,
+                ),
               ),
               obscureText: true,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16.h),
             DropdownButtonFormField<UserRole>(
               value: _selectedRole,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Role',
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 16.h,
+                ),
               ),
               items: UserRole.values.map((role) {
                 return DropdownMenuItem(
@@ -82,15 +102,30 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 }
               },
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
             if (authState.isLoading)
-              const CircularProgressIndicator()
+              SizedBox(
+                width: 24.w,
+                height: 24.h,
+                child: const CircularProgressIndicator(),
+              )
             else
-              ElevatedButton(
-                onPressed: () {
-                  
-                },
-                child: const Text('Register'),
+              SizedBox(
+                width: double.infinity,
+                height: 48.h,
+                child: ElevatedButton(
+                  onPressed: () {
+                    
+                  },
+                  style: ElevatedButton.styleFrom(
+                    textStyle: TextStyle(fontSize: 16.sp),
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                  child: const Text('Register'),
+                ),
               ),
           ],
         ),

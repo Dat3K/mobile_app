@@ -96,7 +96,7 @@ class MyApp extends ConsumerWidget {
                   app,
                   Positioned(
                     right: 0,
-                    top: 100,
+                    top: 100.h,
                     child: Builder(
                       builder: (context) => DebugButton(
                         onPressed: () {
@@ -142,9 +142,10 @@ class DebugButton extends StatelessWidget {
               bottomLeft: Radius.circular(8.r),
             ),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.bug_report,
             color: Colors.white,
+            size: 20.sp,
           ),
         ),
       ),

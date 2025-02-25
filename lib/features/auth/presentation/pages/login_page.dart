@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -67,8 +68,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.all(24),
+            constraints: BoxConstraints(maxWidth: 400.w),
+            padding: EdgeInsets.all(24.sp),
             child: ShadCard(
               title: Text('auth.welcome_back'.tr()),
               description: Text('auth.login_description'.tr()),
@@ -78,11 +79,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
 
                     // Email Field
                     Text('auth.email'.tr()),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     ShadInputFormField(
                       controller: _emailController,
                       placeholder: Text('auth.enter_email'.tr()),
@@ -100,11 +101,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
 
                     // Password Field
                     Text('auth.password'.tr()),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
                     ShadInputFormField(
                       controller: _passwordController,
                       placeholder: Text('auth.enter_password'.tr()),
@@ -120,7 +121,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
 
                     // Remember Me & Forgot Password
                     Row(
@@ -137,21 +138,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         // ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
 
                     // Login Button
                     authState.isLoading
                         ? ShadButton(
                             onPressed: null,
                             leading:
-                                const CircularProgressIndicator(strokeWidth: 2),
+                                CircularProgressIndicator(strokeWidth: 2.w),
                             child: Text('common.please_wait'.tr()),
                           )
                         : ShadButton(
                             onPressed: _onLogin,
                             child: Text('auth.login'.tr()),
                           ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
 
                     // Button get path state
                     ShadButton(
@@ -165,13 +166,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       children: [
                         const Expanded(child: Divider()),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
                           child: Text('common.or'.tr()),
                         ),
                         const Expanded(child: Divider()),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
 
                     // Social Login Buttons
                     Row(
@@ -179,21 +180,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       children: [
                         ShadButton.outline(
                           onPressed: () {},
-                          leading: const Icon(Icons.facebook),
+                          leading: Icon(Icons.facebook, size: 20.sp),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16.w),
                         ShadButton.outline(
                           onPressed: () {},
-                          leading: const Icon(Icons.g_mobiledata),
+                          leading: Icon(Icons.g_mobiledata, size: 20.sp),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16.w),
                         ShadButton.outline(
                           onPressed: () {},
-                          leading: const Icon(Icons.apple),
+                          leading: Icon(Icons.apple, size: 20.sp),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
 
                     // Register Link
                     Row(
