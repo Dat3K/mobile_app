@@ -47,7 +47,7 @@ dependencies:
   flutter_blurhash: ^0.8.2
   animations: ^2.0.11
   lottie: ^3.1.0
-  flutter_native_splash: ^2.4.0
+  flutter_native_splash: ^2.4.4
   animated_text_kit: ^4.2.3
   infinite_scroll_pagination: ^5.0.0
   carousel_slider: ^5.0.0
@@ -127,6 +127,46 @@ flutter:
   assets:
     - assets/translations/
     - assets/lucide.ttf  # Thêm font file Lucide Icons
+    - assets/images/
+
+# Cấu hình flutter_native_splash
+flutter_native_splash:
+  # Màu nền của splash screen - có thể dùng hex color hoặc tên màu material
+  color: "#0066AB" # màu đen
+  
+  # Màu nền cho dark mode
+  color_dark: "#000000"
+  
+  # Hiển thị hình ảnh ứng dụng
+  image: "assets/images/logos/logo_480x265.png"
+  
+  # Đường dẫn đến hình ảnh splash cho dark mode (tuỳ chọn)
+  # image_dark: "assets/images/logo_dark.png"
+  
+  # Tùy chỉnh trạng thái thanh status bar trên Android và iOS
+  android_gravity: center
+  ios_content_mode: center
+  
+  # Màu sắc cho status bar và navigation bar
+  android_screen_orientation: portrait
+  fullscreen: true
+  
+  # Cấu hình cho Android 12
+  android_12:
+    # Màu sắc cho splash screen trên Android 12
+    color: "##0066AB" # màu đen
+    color_dark: "#000000" # màu đen
+    icon_background_color: "##0066AB" # màu đen
+    icon_background_color_dark: "#000000" # màu đen
+    image: "assets/images/logos/logo_480x265.png"
+    # image_dark: "assets/images/logo_dark.png"
+    
+  # Web splash (disable cho dự án này)
+  web: false
+  
+  # Tùy chọn tạo branding text ở phía dưới (tùy chọn)
+  # branding: assets/images/branding.png
+  # branding_dark: assets/images/branding_dark.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

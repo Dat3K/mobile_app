@@ -10,11 +10,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:mobile_app/core/config/screen_util_config.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() async {
   try {
-    // Ensure proper binding initialization
-    WidgetsFlutterBinding.ensureInitialized();
+    // Giữ splash screen cho đến khi ứng dụng sẵn sàng
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
     // Initialize EasyLocalization
     await EasyLocalization.ensureInitialized();
@@ -48,6 +50,9 @@ void main() async {
         ),
       ),
     );
+
+    // Sau khi ứng dụng đã khởi chạy, chúng ta có thể loại bỏ splash screen
+    FlutterNativeSplash.remove();
   } catch (e, stackTrace) {
     debugPrint('Error during initialization: $e\n$stackTrace');
     rethrow;
