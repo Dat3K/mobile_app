@@ -1,3 +1,4 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/services/navigation_service.dart';
@@ -177,31 +178,31 @@ class AuthNotifier extends _$AuthNotifier {
 
 /// Provider cho current user
 @riverpod
-UserEntity? currentUser(ref) {
+UserEntity? currentUser(Ref ref) {
   return ref.watch(authNotifierProvider.select((state) => state.user));
 }
 
 /// Provider cho auth status
 @riverpod
-bool isAuthenticated(ref) {
+bool isAuthenticated(Ref ref) {
   return ref.watch(authNotifierProvider.select((state) => state.isAuthenticated));
 }
 
 /// Provider cho loading status
 @riverpod
-bool isLoading(ref) {
+bool isLoading(Ref ref) {
   return ref.watch(authNotifierProvider.select((state) => state.isLoading));
 }
 
 /// Provider cho error status
 @riverpod
-bool hasError(ref) {
+bool hasError(Ref ref) {
   return ref.watch(authNotifierProvider.select((state) => state.hasError));
 }
 
 /// Provider cho failure message
 @riverpod
-String? failureMessage(ref) {
+String? failureMessage(Ref ref) {
   final failure = ref.watch(authNotifierProvider.select((state) => state.failure));
   return failure?.message;
 }

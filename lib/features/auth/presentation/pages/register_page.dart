@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';

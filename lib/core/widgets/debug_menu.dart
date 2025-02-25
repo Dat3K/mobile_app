@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/services/cookie_service.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';

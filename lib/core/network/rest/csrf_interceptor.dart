@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/csrf_constants.dart';
 import 'package:mobile_app/core/services/cookie_service.dart';
@@ -11,7 +12,7 @@ part 'csrf_interceptor.g.dart';
 
 /// Provider cho CSRF interceptor - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-CsrfInterceptor csrfInterceptor(ref) {
+CsrfInterceptor csrfInterceptor(Ref ref) {
   return CsrfInterceptor(
     dio: ref.watch(dioProvider),
     csrfTokenService: ref.watch(csrfTokenServiceProvider),

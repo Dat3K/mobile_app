@@ -1,3 +1,4 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
@@ -6,7 +7,7 @@ part 'storage_providers.g.dart';
 
 /// Provider cho auth storage services
 @riverpod
-AuthStorageServices authStorageServices(ref) {
+AuthStorageServices authStorageServices(Ref ref) {
   final hiveStorage = ref.watch(hiveStorageServiceProvider);
   final secureStorage = ref.watch(secureStorageServiceProvider);
   return AuthStorageServices(hiveStorage, secureStorage);

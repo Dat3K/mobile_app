@@ -1,5 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/features/student/data/repositories/student_repository_impl.dart';
 import 'package:mobile_app/features/student/domain/entities/student_entity.dart';

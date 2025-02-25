@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'app_theme.g.dart';
@@ -72,19 +73,19 @@ class ThemeConfigNotifier extends _$ThemeConfigNotifier {
 
 /// Provider cho current theme mode
 @riverpod
-ThemeMode currentThemeMode(ref) {
+ThemeMode currentThemeMode(Ref ref) {
   return ref.watch(themeConfigNotifierProvider.select((config) => config.mode));
 }
 
 /// Provider cho current color scheme name
 @riverpod
-String currentColorSchemeName(ref) {
+String currentColorSchemeName(Ref ref) {
   return ref.watch(themeConfigNotifierProvider.select((config) => config.colorSchemeName));
 }
 
-/// Provider cho theme data
+/// Provider cho theme data - không truyền trực tiếp BuildContext
 @riverpod
-ShadThemeData currentTheme(ref, BuildContext context) {
+ShadThemeData currentTheme(Ref ref, Brightness brightness) {
   final config = ref.watch(themeConfigNotifierProvider);
   final colorScheme = ThemeColorSchemes.schemes[config.colorSchemeName];
   
@@ -92,10 +93,11 @@ ShadThemeData currentTheme(ref, BuildContext context) {
     throw Exception('Color scheme ${config.colorSchemeName} not found');
   }
 
-  final isDark = switch (config.mode as ThemeMode) {
+  // Xác định dark mode dựa trên cấu hình và brightness hệ thống
+  final isDark = switch (config.mode) {
     ThemeMode.dark => true,
     ThemeMode.light => false,
-    ThemeMode.system => View.of(context).platformDispatcher.platformBrightness == Brightness.dark,
+    ThemeMode.system => brightness == Brightness.dark,
   };
 
   return ShadThemeData(
@@ -110,3 +112,4 @@ extension ThemeConfigX on ThemeConfig {
   bool get isLightMode => mode == ThemeMode.light;
   bool get isSystemMode => mode == ThemeMode.system;
 }
+

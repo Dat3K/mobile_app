@@ -1,3 +1,4 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/storage/secure_storage.dart';
 import 'package:mobile_app/core/utils/logger.dart';
@@ -7,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'csrf_token_service.g.dart';
 
 @Riverpod(keepAlive: true)
-CsrfTokenService csrfTokenService(ref) {
+CsrfTokenService csrfTokenService(Ref ref) {
   return CsrfTokenService(
     storage: ref.watch(secureStorageServiceProvider),
     logger: ref.watch(loggerServiceProvider),

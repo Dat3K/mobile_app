@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/features/auth/presentation/pages/login_page.dart';
@@ -10,7 +11,7 @@ part 'router.g.dart';
 
 /// Provider cho router - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-GoRouter router(ref) {
+GoRouter router(Ref ref) {
   // Có thể watch auth state để redirect
   // final authState = ref.watch(authStateProvider);
 

@@ -1,4 +1,5 @@
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'secure_storage.dart';
@@ -7,7 +8,7 @@ part 'cookie_storage.g.dart';
 
 /// Provider cho SecureCookieStorage - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-SecureCookieStorage secureCookieStorage(ref) {
+SecureCookieStorage secureCookieStorage(Ref ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
   return SecureCookieStorage(storage: secureStorage);
 }

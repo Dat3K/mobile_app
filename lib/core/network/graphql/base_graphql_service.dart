@@ -1,5 +1,6 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:dartz/dartz.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'graphql_client.dart';
@@ -120,7 +121,7 @@ abstract class BaseGraphQLService implements IGraphQLService {
 
 /// Provider cho BaseGraphQLService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-BaseGraphQLService baseGraphQLService(ref) {
+BaseGraphQLService baseGraphQLService(Ref ref) {
   final client = ref.watch(graphQLClientProvider);
   return _BaseGraphQLServiceImpl(client: client);
 }

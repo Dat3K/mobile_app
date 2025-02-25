@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/router/router.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
@@ -8,6 +8,8 @@ import 'package:mobile_app/core/widgets/debug_menu.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:device_preview/device_preview.dart';
+import 'package:mobile_app/core/config/screen_util_config.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
   try {
@@ -30,17 +32,17 @@ void main() async {
     };
 
     runApp(
-      DevicePreview(
-        enabled: kDebugMode && kIsWeb,
-        builder: (context) => EasyLocalization(
-          supportedLocales: const [
-            Locale('vi', 'VN'),
-            Locale('en', 'US'),
-          ],
-          path: 'assets/translations',
-          fallbackLocale: const Locale('vi', 'VN'),
-          child: UncontrolledProviderScope(
-            container: container,
+      UncontrolledProviderScope(
+        container: container,
+        child: DevicePreview(
+          enabled: kDebugMode && kIsWeb,
+          builder: (context) => EasyLocalization(
+            supportedLocales: const [
+              Locale('vi', 'VN'),
+              Locale('en', 'US'),
+            ],
+            path: 'assets/translations',
+            fallbackLocale: const Locale('vi', 'VN'),
             child: const MyApp(),
           ),
         ),
@@ -59,48 +61,59 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(currentThemeModeProvider);
-    final theme = ref.watch(currentThemeProvider(context));
+    final brightness = MediaQuery.of(context).platformBrightness;
+    final theme = ref.watch(currentThemeProvider(brightness));
 
-    return ShadApp.materialRouter(
-      title: 'Mobile-app',
-      theme: theme,
-      themeMode: themeMode,
-      debugShowCheckedModeBanner: false,
-      routerDelegate: router.routerDelegate,
-      routeInformationParser: router.routeInformationParser,
-      routeInformationProvider: router.routeInformationProvider,
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      builder: (context, child) {
-        // Wrap với DevicePreview trong debug mode
-        Widget app = DevicePreview.appBuilder(context, child);
+    // Khởi tạo ScreenUtil và bọc ứng dụng
+    return AppScreenUtil.init(
+      child: ShadApp.materialRouter(
+        title: 'Mobile-app',
+        theme: theme,
+        themeMode: themeMode,
+        debugShowCheckedModeBanner: false,
+        routerDelegate: router.routerDelegate,
+        routeInformationParser: router.routeInformationParser,
+        routeInformationProvider: router.routeInformationProvider,
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
+        builder: (context, child) {
+          // In thông tin màn hình trong debug mode
+          if (kDebugMode) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              AppScreenUtil.reportScreenInfo(context);
+            });
+          }
+          
+          // Wrap với DevicePreview trong debug mode
+          Widget app = DevicePreview.appBuilder(context, child);
 
-        // Thêm debug menu trong debug mode
-        if (kDebugMode) {
-          app = Scaffold(
-            body: Stack(
-              children: [
-                app,
-                Positioned(
-                  right: 0,
-                  top: 100,
-                  child: Builder(
-                    builder: (context) => DebugButton(
-                      onPressed: () {
-                        Scaffold.of(context).openEndDrawer();
-                      },
+          // Thêm debug menu trong debug mode
+          if (kDebugMode) {
+            app = Scaffold(
+              body: Stack(
+                children: [
+                  app,
+                  Positioned(
+                    right: 0,
+                    top: 100,
+                    child: Builder(
+                      builder: (context) => DebugButton(
+                        onPressed: () {
+                          Scaffold.of(context).openEndDrawer();
+                        },
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            endDrawer: const DebugMenu(),
-          );
-        }
+                ],
+              ),
+              endDrawer: const DebugMenu(),
+            );
+          }
 
-        return app;
-      },
+          return app;
+        },
+      ),
     );
   }
 }
@@ -121,12 +134,12 @@ class DebugButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8.sp),
           decoration: BoxDecoration(
             color: Colors.red.shade300,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(8),
-              bottomLeft: Radius.circular(8),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8.r),
+              bottomLeft: Radius.circular(8.r),
             ),
           ),
           child: const Icon(

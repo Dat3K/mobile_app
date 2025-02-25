@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -143,7 +143,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     authState.isLoading
                         ? ShadButton(
                             onPressed: null,
-                            icon:
+                            leading:
                                 const CircularProgressIndicator(strokeWidth: 2),
                             child: Text('common.please_wait'.tr()),
                           )
@@ -179,17 +179,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       children: [
                         ShadButton.outline(
                           onPressed: () {},
-                          icon: const Icon(Icons.facebook),
+                          leading: const Icon(Icons.facebook),
                         ),
                         const SizedBox(width: 16),
                         ShadButton.outline(
                           onPressed: () {},
-                          icon: const Icon(Icons.g_mobiledata),
+                          leading: const Icon(Icons.g_mobiledata),
                         ),
                         const SizedBox(width: 16),
                         ShadButton.outline(
                           onPressed: () {},
-                          icon: const Icon(Icons.apple),
+                          leading: const Icon(Icons.apple),
                         ),
                       ],
                     ),

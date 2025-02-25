@@ -1,19 +1,20 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 
 part 'secure_storage.g.dart';
 
 /// Provider cho FlutterSecureStorage instance
 @riverpod
-FlutterSecureStorage secureStorage(ref) {
+FlutterSecureStorage secureStorage(Ref ref) {
   return const FlutterSecureStorage();
 }
 
 /// Provider cho SecureStorageService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-SecureStorageService secureStorageService(ref) {
+SecureStorageService secureStorageService(Ref ref) {
   final storage = ref.watch(secureStorageProvider);
   final logger = ref.watch(loggerServiceProvider);
   return SecureStorageService(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/constants/hive_type_ids.dart';
@@ -37,7 +38,7 @@ part 'hive_storage.g.dart';
 
 /// Provider cho HiveStorageService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-HiveStorageService hiveStorageService(ref) {
+HiveStorageService hiveStorageService(Ref ref) {
   final logger = ref.watch(loggerServiceProvider);
   return HiveStorageService(logger: logger);
 }

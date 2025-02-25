@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
@@ -14,7 +15,7 @@ part 'dio_client.g.dart';
 
 /// Provider cho cache options
 @riverpod
-CacheOptions cacheOptions(ref) {
+CacheOptions cacheOptions(Ref ref) {
   return CacheOptions(
     store: MemCacheStore(),
     policy: CachePolicy.request,
@@ -28,7 +29,7 @@ CacheOptions cacheOptions(ref) {
 
 /// Provider cho Dio client - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-Dio dio(ref) {
+Dio dio(Ref ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppConstants.apiBaseUrl,
@@ -69,17 +70,11 @@ Dio dio(ref) {
 
 /// Provider cho DioClient - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-DioClient dioClient(ref) {
+DioClient dioClient(Ref ref) {
   final dio = ref.watch(dioProvider);
   final logger = ref.watch(loggerServiceProvider);
   final cookieService = ref.watch(cookieServiceProvider);
   final csrfInterceptor = ref.watch(csrfInterceptorProvider);
-
-  // Cleanup khi provider bị dispose
-  ref.onDispose(() {
-    final client = ref.state;
-    client.dispose();
-  });
 
   return DioClient(
     dio: dio,

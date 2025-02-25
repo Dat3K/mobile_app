@@ -1,6 +1,7 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/core/storage/cookie_storage.dart';
@@ -9,7 +10,7 @@ part 'cookie_service.g.dart';
 
 /// Provider cho CookieService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-CookieService cookieService(ref) {
+CookieService cookieService(Ref ref) {
   return CookieService(
     logger: ref.watch(loggerServiceProvider),
     secureCookieStorage: ref.watch(secureCookieStorageProvider),

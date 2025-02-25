@@ -1,3 +1,4 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/router/router.dart';
@@ -6,7 +7,7 @@ part 'navigation_service.g.dart';
 
 /// Provider cho NavigationService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-NavigationService navigationService(ref) {
+NavigationService navigationService(Ref ref) {
   final router = ref.watch(routerProvider);
   return NavigationService(router: router);
 }

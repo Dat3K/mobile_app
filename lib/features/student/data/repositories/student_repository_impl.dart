@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/constants/storage_keys.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/graphql/base_graphql_service.dart';

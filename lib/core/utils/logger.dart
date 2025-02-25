@@ -1,11 +1,12 @@
 import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 part 'logger.g.dart';
 
 /// Provider cho LoggerService - giữ instance trong suốt vòng đời ứng dụng
 @Riverpod(keepAlive: true)
-LoggerService loggerService(ref) {
+LoggerService loggerService(Ref ref) {
   return LoggerService();
 }
 
