@@ -144,15 +144,6 @@ app.*.symbols
 # cursor rules
 .cursor
 
-# Generated code
-*.g.dart
-*.freezed.dart
-*.gr.dart
-*.gen.dart
-*.config.dart
-*.mocks.dart
-*.hive.dart
-
 # Generated GraphQL
 *.gql.dart
 *.gql.g.dart

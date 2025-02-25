@@ -7,9 +7,6 @@ part 'user_role_model.g.dart';
 
 @HiveType(typeId: HiveTypeIds.userRole)
 enum UserRoleModel {
-  @JsonValue('faculty')
-  @HiveField(0)
-  faculty,
 
   @JsonValue('student')
   @HiveField(1)
@@ -22,8 +19,6 @@ enum UserRoleModel {
   // Convert to domain value object
   UserRole toDomain() {
     switch (this) {
-      case UserRoleModel.faculty:
-        return UserRole.faculty;
       case UserRoleModel.student:
         return UserRole.student;
       case UserRoleModel.enterprise:

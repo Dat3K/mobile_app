@@ -17,7 +17,7 @@
     "logout": "Logout",
     "email": "Email",
     "password": "Password",
-    "welcome_back": "Welcome back",
+    "welcome_back": "Welcome Back",
     "login_description": "Enter your credentials to access your account",
     "enter_email": "Enter your email",
     "enter_password": "Enter your password",
@@ -28,10 +28,21 @@
     "auth_error": "Authentication Error",
     "try_again": "Try again",
     "validation": {
-      "email_required": "Please enter your email",
-      "email_invalid": "Please enter a valid email",
-      "password_required": "Please enter your password",
+      "email_required": "Email is required",
+      "email_invalid": "Email is invalid",
+      "password_required": "Password is required",
       "password_length": "Password must be at least 6 characters"
     }
+  },
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "register": "Register",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "post": "Post",
+    "applicants": "Applicants",
+    "internships": "Internships",
+    "events": "Events"
   }
 }

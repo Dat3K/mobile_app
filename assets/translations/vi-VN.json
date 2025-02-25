@@ -33,5 +33,16 @@
       "password_required": "Vui lòng nhập mật khẩu",
       "password_length": "Mật khẩu phải có ít nhất 6 ký tự"
     }
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "explore": "Khám phá",
+    "register": "Đăng ký",
+    "notifications": "Thông báo",
+    "profile": "Cá nhân",
+    "post": "Đăng tin",
+    "applicants": "Ứng viên",
+    "internships": "Thực tập",
+    "events": "Sự kiện"
   }
 }

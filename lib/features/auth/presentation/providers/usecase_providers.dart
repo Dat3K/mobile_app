@@ -26,4 +26,4 @@ LogoutUseCase logoutUseCase(Ref ref) {
 GetCurrentUserUseCase getCurrentUserUseCase(Ref ref) {
   final repository = ref.watch(authRepositoryProvider);
   return GetCurrentUserUseCase(repository);
-} 
+}

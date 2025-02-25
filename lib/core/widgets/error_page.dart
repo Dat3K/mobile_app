@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
 
 class ErrorPage extends StatelessWidget {
   final Exception? error;
@@ -37,7 +39,7 @@ class ErrorPage extends StatelessWidget {
               ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pushReplacementNamed('/'),
+              onPressed: () => context.go(RoutePaths.login),
               child: const Text('Go Home'),
             ),
           ],

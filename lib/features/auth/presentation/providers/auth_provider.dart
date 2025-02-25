@@ -161,9 +161,6 @@ class AuthNotifier extends _$AuthNotifier {
       case UserRole.student:
         navigation.replace(RoutePaths.student);
         break;
-      case UserRole.faculty:
-        navigation.replace(RoutePaths.faculty);
-        break;
       case UserRole.enterprise:
         navigation.replace(RoutePaths.enterprise);
         break;
@@ -180,6 +177,12 @@ class AuthNotifier extends _$AuthNotifier {
 @riverpod
 UserEntity? currentUser(Ref ref) {
   return ref.watch(authNotifierProvider.select((state) => state.user));
+}
+
+/// Provider cho user role
+@riverpod
+UserRole? userRole(Ref ref) {
+  return ref.watch(authNotifierProvider.select((state) => state.user?.role));
 }
 
 /// Provider cho auth status
