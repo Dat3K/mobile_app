@@ -11,19 +11,19 @@ part 'usecase_providers.g.dart';
 @riverpod
 LoginUseCase loginUseCase(Ref ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return LoginUseCase(repository);
+  return LoginUseCase(repository: repository);
 }
 
 /// Provider cho LogoutUseCase
 @riverpod
 LogoutUseCase logoutUseCase(Ref ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return LogoutUseCase(repository);
+  return LogoutUseCase(repository: repository);
 }
 
 /// Provider cho CheckAuthUseCase
 @riverpod
 GetCurrentUserUseCase getCurrentUserUseCase(Ref ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return GetCurrentUserUseCase(repository);
+  return GetCurrentUserUseCase(repository: repository);
 }

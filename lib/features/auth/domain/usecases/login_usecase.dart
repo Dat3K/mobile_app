@@ -11,16 +11,14 @@ class LoginParams {
 }
 
 class LoginUseCase implements UseCase<AuthResult, LoginParams> {
-  final IAuthRepository repository;
+  final IAuthRepository _repository;
 
-  LoginUseCase(this.repository);
+  LoginUseCase({required IAuthRepository repository})
+      : _repository = repository;
 
   @override
   Future<Either<Failure, AuthResult>> call(LoginParams params) async {
-    final result = await repository.login(params.email, params.password);
-    return result.fold(
-      (failure) => Left(failure),
-      (authResult) => Right(authResult),
-    );
+    return await _repository.login(params.email, params.password);
+  
   }
 }

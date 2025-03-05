@@ -1,11 +1,19 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/features/student/presentation/providers/usecase_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/features/student/data/repositories/student_repository_impl.dart';
 import 'package:mobile_app/features/student/domain/entities/student_entity.dart';
 import 'package:mobile_app/features/student/domain/repositories/student_repository.dart';
+import 'package:mobile_app/features/student/domain/usecases/get_students.dart';
+import 'package:mobile_app/features/student/domain/usecases/get_student_by_id.dart';
+import 'package:mobile_app/features/student/domain/usecases/create_student.dart';
+import 'package:mobile_app/features/student/domain/usecases/update_student.dart';
+import 'package:mobile_app/features/student/domain/usecases/delete_student.dart';
 
 part 'student_provider.freezed.dart';
+part 'student_provider.g.dart';
 
 @freezed
 class StudentState with _$StudentState {
@@ -16,22 +24,21 @@ class StudentState with _$StudentState {
   }) = _StudentState;
 }
 
-final studentStateProvider =
-    StateNotifierProvider<StudentNotifier, StudentState>((ref) {
-  final repository = ref.watch(studentRepositoryProvider);
-  return StudentNotifier(repository);
-});
+@Riverpod(keepAlive: true)
+class StudentNotifier extends _$StudentNotifier {
+  @override
+  StudentState build() => const StudentState();
 
-class StudentNotifier extends StateNotifier<StudentState> {
-  final IStudentRepository _repository;
-
-  StudentNotifier(this._repository) : super(const StudentState());
+  // Sử dụng provider của use case
+  late final GetStudents _getStudents = ref.watch(getStudentsProvider);
+  late final GetStudentById _getStudentById = ref.watch(getStudentByIdProvider);
+  late final CreateStudent _createStudent = ref.watch(createStudentProvider);
+  late final UpdateStudent _updateStudent = ref.watch(updateStudentProvider);
+  late final DeleteStudent _deleteStudent = ref.watch(deleteStudentProvider);
 
   Future<void> getStudents() async {
     state = state.copyWith(isLoading: true, failure: null);
-
-    final result = await _repository.getStudents();
-
+    final result = await _getStudents();
     state = result.fold(
       (failure) => state.copyWith(failure: failure, isLoading: false),
       (students) => state.copyWith(students: students, isLoading: false),
@@ -41,7 +48,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
   Future<void> getStudentById(String id) async {
     state = state.copyWith(isLoading: true, failure: null);
 
-    final result = await _repository.getStudentById(id);
+    final result = await _getStudentById(id);
 
     state = result.fold(
       (failure) => state.copyWith(failure: failure, isLoading: false),
@@ -55,7 +62,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
   Future<void> createStudent(StudentEntity student) async {
     state = state.copyWith(isLoading: true, failure: null);
 
-    final result = await _repository.createStudent(student);
+    final result = await _createStudent(student);
 
     state = result.fold(
       (failure) => state.copyWith(failure: failure, isLoading: false),
@@ -69,7 +76,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
   Future<void> updateStudent(StudentEntity student) async {
     state = state.copyWith(isLoading: true, failure: null);
 
-    final result = await _repository.updateStudent(student);
+    final result = await _updateStudent(student);
 
     state = result.fold(
       (failure) => state.copyWith(failure: failure, isLoading: false),
@@ -85,7 +92,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
   Future<void> deleteStudent(String id) async {
     state = state.copyWith(isLoading: true, failure: null);
 
-    final result = await _repository.deleteStudent(id);
+    final result = await _deleteStudent(id);
 
     state = result.fold(
       (failure) => state.copyWith(failure: failure, isLoading: false),

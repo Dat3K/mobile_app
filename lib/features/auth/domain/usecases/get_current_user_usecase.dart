@@ -5,16 +5,13 @@ import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
 class GetCurrentUserUseCase implements UseCase<UserEntity, NoParams> {
-  final IAuthRepository repository;
+  final IAuthRepository _repository;
 
-  GetCurrentUserUseCase(this.repository);
+  GetCurrentUserUseCase({required IAuthRepository repository})
+      : _repository = repository;
 
   @override
   Future<Either<Failure, UserEntity>> call(NoParams params) async {
-    final result = await repository.getCurrentUser();
-    return result.fold(
-      (failure) => Left(failure),
-      (user) => Right(user),
-    );
+    return await _repository.getCurrentUser();
   }
 }

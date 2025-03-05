@@ -4,16 +4,13 @@ import '../../../../core/usecases/usecase.dart';
 import '../repositories/auth_repository.dart';
 
 class LogoutUseCase implements UseCase<void, NoParams> {
-  final IAuthRepository repository;
+  final IAuthRepository _repository;
 
-  LogoutUseCase(this.repository);
+  LogoutUseCase({required IAuthRepository repository})
+      : _repository = repository;
 
   @override
   Future<Either<Failure, void>> call(NoParams params) async {
-    final result = await repository.logout();
-    return result.fold(
-      (failure) => Left(failure),
-      (_) => Right(null),
-    );
+    return await _repository.logout();
   }
 }

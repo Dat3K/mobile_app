@@ -6,7 +6,7 @@ part of 'usecase_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$loginUseCaseHash() => r'cbfd4200f40c132516f20f942ae9d825a31e2515';
+String _$loginUseCaseHash() => r'041a58823f394289e5b78550021aaf08c708559d';
 
 /// Provider cho LoginUseCase
 ///
@@ -24,7 +24,7 @@ final loginUseCaseProvider = AutoDisposeProvider<LoginUseCase>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LoginUseCaseRef = AutoDisposeProviderRef<LoginUseCase>;
-String _$logoutUseCaseHash() => r'67224f00aebb158eab2aba2c4398e98150dd958c';
+String _$logoutUseCaseHash() => r'48fae02b5ce526cd55ded49e128ade5c8459a4c4';
 
 /// Provider cho LogoutUseCase
 ///
@@ -44,7 +44,7 @@ final logoutUseCaseProvider = AutoDisposeProvider<LogoutUseCase>.internal(
 // ignore: unused_element
 typedef LogoutUseCaseRef = AutoDisposeProviderRef<LogoutUseCase>;
 String _$getCurrentUserUseCaseHash() =>
-    r'1e9d6222283b80c2b6fc6ed8c89f4130614c0a11';
+    r'2871fd2a234d7235edf8dba67c59e11c0f61ca2f';
 
 /// Provider cho CheckAuthUseCase
 ///
