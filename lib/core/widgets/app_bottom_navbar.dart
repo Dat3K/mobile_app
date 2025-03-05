@@ -4,12 +4,22 @@ import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+part 'app_bottom_navbar.g.dart';
+
 // Provider để quản lý trạng thái của bottom nav
-final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
+@riverpod
+class BottomNavIndex extends _$BottomNavIndex {
+  @override
+  int build() => 0;
+
+  void setIndex(int index) => state = index;
+}
 
 class AppBottomNavBar extends ConsumerWidget {
   const AppBottomNavBar({
@@ -22,7 +32,8 @@ class AppBottomNavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Lấy theme hiện tại
-    final theme = ShadTheme.of(context);
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    final theme = ref.watch(currentThemeProvider(brightness));
     final isDark = theme.brightness == Brightness.dark;
     
     // Lấy vai trò người dùng hiện tại
@@ -31,17 +42,11 @@ class AppBottomNavBar extends ConsumerWidget {
     // Chọn tabs dựa theo vai trò
     final tabs = _getTabsForRole(userRole);
 
-    // Tìm index hiện tại dựa trên path
-    final currentIndex = tabs.indexWhere((tab) => currentPath.startsWith(tab.path));
-    if (currentIndex >= 0) {
-      // Cập nhật provider nếu index thay đổi
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(bottomNavIndexProvider.notifier).state = currentIndex;
-      });
-    }
-
+    // Lấy current index từ provider
+    final selectedIndex = ref.watch(bottomNavIndexProvider);
+    
     return Container(
-      height: 80.h,
+      height: 64.h,
       decoration: BoxDecoration(
         color: theme.colorScheme.background,
         boxShadow: [
@@ -52,8 +57,8 @@ class AppBottomNavBar extends ConsumerWidget {
           ),
         ],
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16.r),
-          topRight: Radius.circular(16.r),
+          topLeft: Radius.circular(12.r),
+          topRight: Radius.circular(12.r),
         ),
       ),
       child: SafeArea(
@@ -65,7 +70,7 @@ class AppBottomNavBar extends ConsumerWidget {
             children: tabs.asMap().entries.map((entry) {
               final index = entry.key;
               final tab = entry.value;
-              final isSelected = currentIndex == index;
+              final isSelected = index == selectedIndex;
               
               return _buildNavItem(
                 context: context,
@@ -74,7 +79,7 @@ class AppBottomNavBar extends ConsumerWidget {
                 onTap: () {
                   if (currentPath != tab.path) {
                     context.go(tab.path);
-                    ref.read(bottomNavIndexProvider.notifier).state = index;
+                    ref.read(bottomNavIndexProvider.notifier).setIndex(index);
                   }
                 },
                 theme: theme,
@@ -97,9 +102,6 @@ class AppBottomNavBar extends ConsumerWidget {
         return _studentTabs;
       case UserRole.enterprise:
         return _enterpriseTabs;
-      default:
-        // Trường hợp chưa đăng nhập hoặc không xác định vai trò
-        return _defaultTabs;
     }
   }
 
@@ -177,23 +179,20 @@ class AppBottomNavBar extends ConsumerWidget {
     required VoidCallback onTap,
     required ShadThemeData theme,
   }) {
+    final Color itemColor = isSelected 
+        ? theme.colorScheme.primary 
+        : theme.colorScheme.mutedForeground;
+
     return Expanded(
       child: InkWell(
         onTap: onTap,
         customBorder: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(12.r),
         ),
-        splashColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-        highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          decoration: BoxDecoration(
-            color: isSelected 
-                ? theme.colorScheme.primary.withValues(alpha: 0.1) 
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(16.r),
-          ),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 6.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -202,17 +201,15 @@ class AppBottomNavBar extends ConsumerWidget {
                 children: [
                   Icon(
                     isSelected ? tab.activeIcon : tab.icon,
-                    color: isSelected 
-                        ? theme.colorScheme.primary 
-                        : theme.colorScheme.background.withValues(alpha: 0.7),
-                    size: 24.sp,
+                    color: itemColor,
+                    size: 22.sp,
                   ),
                   if (tab.badgeCount > 0)
                     Positioned(
-                      right: -6.w,
-                      top: -6.h,
+                      right: -4.w,
+                      top: -4.h,
                       child: Container(
-                        padding: EdgeInsets.all(4.sp),
+                        padding: EdgeInsets.all(3.sp),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.destructive,
                           shape: BoxShape.circle,
@@ -221,7 +218,7 @@ class AppBottomNavBar extends ConsumerWidget {
                           tab.badgeCount > 9 ? '9+' : tab.badgeCount.toString(),
                           style: TextStyle(
                             color: theme.colorScheme.destructiveForeground,
-                            fontSize: 10.sp,
+                            fontSize: 8.sp,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -229,14 +226,12 @@ class AppBottomNavBar extends ConsumerWidget {
                     ),
                 ],
               ),
-              SizedBox(height: 4.h),
+              SizedBox(height: 2.h),
               Text(
                 tab.label,
                 style: TextStyle(
-                  color: isSelected 
-                      ? theme.colorScheme.primary 
-                      : theme.colorScheme.background.withValues(alpha: 0.7),
-                  fontSize: 12.sp,
+                  color: itemColor,
+                  fontSize: 11.sp,
                   fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                 ),
                 maxLines: 1,

@@ -53,6 +53,7 @@ dependencies:
   carousel_slider: ^5.0.0
   flutter_screenutil: ^5.9.3
   smooth_page_indicator: ^1.2.1
+  modal_bottom_sheet: ^3.0.0
 
   # Network & API
   dio: ^5.8.0+1
