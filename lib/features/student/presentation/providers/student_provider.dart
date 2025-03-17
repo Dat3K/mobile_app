@@ -1,16 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mobile_app/features/student/presentation/providers/usecase_provider.dart';
+import 'package:mobile_app/features/student/presentation/providers/student_usecase_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/error/failures.dart';
-import 'package:mobile_app/features/student/data/repositories/student_repository_impl.dart';
 import 'package:mobile_app/features/student/domain/entities/student_entity.dart';
-import 'package:mobile_app/features/student/domain/repositories/student_repository.dart';
-import 'package:mobile_app/features/student/domain/usecases/get_students.dart';
-import 'package:mobile_app/features/student/domain/usecases/get_student_by_id.dart';
-import 'package:mobile_app/features/student/domain/usecases/create_student.dart';
-import 'package:mobile_app/features/student/domain/usecases/update_student.dart';
-import 'package:mobile_app/features/student/domain/usecases/delete_student.dart';
+import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 
 part 'student_provider.freezed.dart';
 part 'student_provider.g.dart';
@@ -21,85 +15,81 @@ class StudentState with _$StudentState {
     @Default([]) List<StudentEntity> students,
     @Default(false) bool isLoading,
     Failure? failure,
+    StudentEntity? currentStudent,
   }) = _StudentState;
+
+  const StudentState._();
+
+  bool get hasError => failure != null;
+  bool get hasStudent => currentStudent != null;
 }
 
 @Riverpod(keepAlive: true)
 class StudentNotifier extends _$StudentNotifier {
   @override
-  StudentState build() => const StudentState();
-
-  // Sử dụng provider của use case
-  late final GetStudents _getStudents = ref.watch(getStudentsProvider);
-  late final GetStudentById _getStudentById = ref.watch(getStudentByIdProvider);
-  late final CreateStudent _createStudent = ref.watch(createStudentProvider);
-  late final UpdateStudent _updateStudent = ref.watch(updateStudentProvider);
-  late final DeleteStudent _deleteStudent = ref.watch(deleteStudentProvider);
-
-  Future<void> getStudents() async {
-    state = state.copyWith(isLoading: true, failure: null);
-    final result = await _getStudents();
-    state = result.fold(
-      (failure) => state.copyWith(failure: failure, isLoading: false),
-      (students) => state.copyWith(students: students, isLoading: false),
-    );
+  StudentState build() {
+    // Khởi tạo state mặc định
+    _loadCurrentStudent();
+    return const StudentState();
   }
 
-  Future<void> getStudentById(String id) async {
-    state = state.copyWith(isLoading: true, failure: null);
-
-    final result = await _getStudentById(id);
-
-    state = result.fold(
-      (failure) => state.copyWith(failure: failure, isLoading: false),
-      (student) => state.copyWith(
-        students: [...state.students, student],
+  Future<void> _loadCurrentStudent() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      state = state.copyWith(
         isLoading: false,
-      ),
-    );
-  }
+        failure: ServerFailure('User not authenticated'),
+      );
+      return;
+    }
 
-  Future<void> createStudent(StudentEntity student) async {
     state = state.copyWith(isLoading: true, failure: null);
 
-    final result = await _createStudent(student);
+    try {
+      final getCurrentStudent = ref.read(getCurrentStudentUseCaseProvider);
+      final result = await getCurrentStudent(user.id);
 
-    state = result.fold(
-      (failure) => state.copyWith(failure: failure, isLoading: false),
-      (newStudent) => state.copyWith(
-        students: [...state.students, newStudent],
+      state = result.fold(
+        (failure) => state.copyWith(
+          isLoading: false,
+          failure: failure,
+        ),
+        (student) => state.copyWith(
+          isLoading: false,
+          currentStudent: student,
+          failure: null,
+        ),
+      );
+    } catch (e) {
+      state = state.copyWith(
         isLoading: false,
-      ),
-    );
+        failure: ServerFailure('Error loading student: ${e.toString()}'),
+      );
+    }
   }
 
-  Future<void> updateStudent(StudentEntity student) async {
-    state = state.copyWith(isLoading: true, failure: null);
-
-    final result = await _updateStudent(student);
-
-    state = result.fold(
-      (failure) => state.copyWith(failure: failure, isLoading: false),
-      (updatedStudent) => state.copyWith(
-        students: state.students
-            .map((s) => s.id == student.id ? updatedStudent : s)
-            .toList(),
-        isLoading: false,
-      ),
-    );
+  Future<void> refreshStudent() async {
+    await _loadCurrentStudent();
   }
+}
 
-  Future<void> deleteStudent(String id) async {
-    state = state.copyWith(isLoading: true, failure: null);
+@riverpod
+StudentEntity? getCurrentStudent(Ref ref) {
+  return ref.watch(studentNotifierProvider.select((state) => state.currentStudent));
+}
 
-    final result = await _deleteStudent(id);
+@riverpod
+bool isStudentLoading(Ref ref) {
+  return ref.watch(studentNotifierProvider.select((state) => state.isLoading));
+}
 
-    state = result.fold(
-      (failure) => state.copyWith(failure: failure, isLoading: false),
-      (_) => state.copyWith(
-        students: state.students.where((s) => s.id != id).toList(),
-        isLoading: false,
-      ),
-    );
-  }
+@riverpod
+bool hasStudentError(Ref ref) {
+  return ref.watch(studentNotifierProvider.select((state) => state.hasError));
+}
+
+@riverpod
+String? studentErrorMessage(Ref ref) {
+  final failure = ref.watch(studentNotifierProvider.select((state) => state.failure));
+  return failure?.message;
 }

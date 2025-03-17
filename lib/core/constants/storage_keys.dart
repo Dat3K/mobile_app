@@ -13,6 +13,7 @@ class StorageKeys {
 
   // Auth Keys
   static const String userKey = 'user';
+  static const String studentKey = 'student';
 
   // CSRF Keys
   static const String csrfTokenKey = 'csrf_token';
