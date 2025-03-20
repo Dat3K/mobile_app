@@ -21,39 +21,33 @@ class AuthRepository implements IAuthRepository {
     try {
       final response = await _remoteDataSource.login(email, password);
 
-      // Save session to local storage
       await _localDataSource.saveUser(response);
 
       return Right(AuthResult(
         user: response.toDomain(),
       ));
     } on Failure catch (failure) {
+      _localDataSource.clearAllData();
       return Left(failure);
+    } catch (e) {
+      return Left(
+          ServerFailure('Lỗi đăng nhập không xác định: ${e.toString()}'));
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      // 1. Call logout API first
       await _remoteDataSource.logout();
-      
-      // 2. Only clear local data after successful logout
+
       await _localDataSource.clearAllData();
-      
+
       return const Right(null);
-    } on ServerFailure catch (failure) {
-      try {
-        // Even if server logout fails, we should still clear local data
-        await _localDataSource.clearAllData();
-      } catch (e) {
-        return Left(ServerFailure(e.toString()));        
-      }
-      return Left(failure);
     } on Failure catch (failure) {
+      _localDataSource.clearAllData();
       return Left(failure);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure('Lỗi đăng xuất không xác định: ${e.toString()}'));
     }
   }
 

@@ -21,8 +21,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void initState() {
     super.initState();
     assert(() {
-      _emailController.text = '524H0077@student.tdtu.edu.vn';
-      _passwordController.text = 'AppController_YRXoxijGiTq8rbKMbqM21SQRwaA1!';
+      _emailController.text = '58268357@student.tdtu.edu.vn';
+      _passwordController.text = 'AppController_Md1pOwuiLghnOJVUgriYILNs6aA1!';
       return true;
     }());
   }

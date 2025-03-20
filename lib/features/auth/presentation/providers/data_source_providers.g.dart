@@ -28,7 +28,7 @@ final authLocalDataSourceProvider =
 // ignore: unused_element
 typedef AuthLocalDataSourceRef = AutoDisposeProviderRef<AuthLocalDataSource>;
 String _$authRemoteDataSourceHash() =>
-    r'12394c67300866d3b40d4662926a72841e4cb3d1';
+    r'1f97f779230d67223f486905a8b2bccb9e3a6f2f';
 
 /// Provider cho AuthRemoteDataSource
 ///

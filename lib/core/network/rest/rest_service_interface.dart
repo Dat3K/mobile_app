@@ -1,4 +1,4 @@
-abstract class IRestClient {
+abstract class IRestService {
   Future<T> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,

@@ -1,7 +1,7 @@
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/network/rest/rest_client_adapter.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:mobile_app/core/network/rest/dio_client.dart';
 import '../../data/datasources/auth_local_data_source.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import 'storage_providers.dart';
@@ -23,6 +23,6 @@ AuthLocalDataSource authLocalDataSource(Ref ref) {
 /// Provider cho AuthRemoteDataSource
 @riverpod
 AuthRemoteDataSource authRemoteDataSource(Ref ref) {
-  final dioClient = ref.watch(dioClientProvider);
-  return AuthRemoteDataSource(dioClient);
+  final restClientAdapter = ref.watch(restClientAdapterProvider);
+  return AuthRemoteDataSource(restClientAdapter);
 }
