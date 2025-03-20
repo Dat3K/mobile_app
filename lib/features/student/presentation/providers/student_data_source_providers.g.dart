@@ -7,12 +7,12 @@ part of 'student_data_source_providers.dart';
 // **************************************************************************
 
 String _$studentLocalDataSourceHash() =>
-    r'46e10498e3c405d2e3f2d544b824e9144f8df31f';
+    r'22ba7d1365251be7a5fabaef8d1a7e42d967f35c';
 
 /// See also [studentLocalDataSource].
 @ProviderFor(studentLocalDataSource)
 final studentLocalDataSourceProvider =
-    AutoDisposeProvider<StudentLocalDataSource>.internal(
+    AutoDisposeProvider<IStudentLocalDataSource>.internal(
   studentLocalDataSource,
   name: r'studentLocalDataSourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -25,14 +25,14 @@ final studentLocalDataSourceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef StudentLocalDataSourceRef
-    = AutoDisposeProviderRef<StudentLocalDataSource>;
+    = AutoDisposeProviderRef<IStudentLocalDataSource>;
 String _$studentRemoteDataSourceHash() =>
-    r'5f457c2dee1931ae1f001b3d469e7d92c7275988';
+    r'11b2fbb337a26254bd50a463f0b67a4872b2629a';
 
 /// See also [studentRemoteDataSource].
 @ProviderFor(studentRemoteDataSource)
 final studentRemoteDataSourceProvider =
-    AutoDisposeProvider<StudentRemoteDataSource>.internal(
+    AutoDisposeProvider<IStudentRemoteDataSource>.internal(
   studentRemoteDataSource,
   name: r'studentRemoteDataSourceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -45,6 +45,6 @@ final studentRemoteDataSourceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef StudentRemoteDataSourceRef
-    = AutoDisposeProviderRef<StudentRemoteDataSource>;
+    = AutoDisposeProviderRef<IStudentRemoteDataSource>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

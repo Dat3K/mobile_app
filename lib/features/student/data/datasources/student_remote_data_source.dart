@@ -1,202 +1,203 @@
 import 'package:dartz/dartz.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/features/student/data/models/student_model.dart';
+import 'package:mobile_app/core/network/api_client_interface.dart';
+
+/// GraphQL endpoints for student operations
+class StudentEndpoints {
+  static const String getStudents = 'GetStudents';
+  static const String getStudentById = 'GetStudentById';
+  static const String getStudentByUserId = 'GetStudentByUserId';
+  static const String addStudent = 'AddStudent';
+  static const String updateStudent = 'UpdateStudent';
+  static const String deleteStudent = 'DeleteStudent';
+}
 
 abstract class IStudentRemoteDataSource {
-  Future<Either<Failure, List<StudentModel>>> getStudents();
+  Future<Either<Failure, List<StudentModel>>> getStudents({Map<String, dynamic>? filters});
   Future<Either<Failure, StudentModel>> getStudentById(String id);
   Future<Either<Failure, StudentModel>> getStudentByUserId(String userId);
   Future<Either<Failure, bool>> addStudent(StudentModel student);
   Future<Either<Failure, bool>> updateStudent(StudentModel student);
   Future<Either<Failure, bool>> deleteStudent(String id);
-} 
+}
 
 class StudentRemoteDataSource implements IStudentRemoteDataSource {
-  final GraphQLClient _client;
+  final IApiClient _apiClient;
   final LoggerService _logger;
 
   StudentRemoteDataSource({
-    required GraphQLClient client,
+    required IApiClient apiClient,
     required LoggerService logger,
-  })  : _client = client,
+  })  : _apiClient = apiClient,
         _logger = logger;
 
   @override
-  Future<Either<Failure, List<StudentModel>>> getStudents() async {
-    _logger.i('Fetching students from remote source');
-    final QueryOptions options = QueryOptions(
-      document: gql(r'''
-        query GetStudents {
-          students {
-            id
-            userId
-            fullName
-            major
-            graduationYear
-            enrollmentYear
-            skills
-          }
+  Future<Either<Failure, List<StudentModel>>> getStudents({Map<String, dynamic>? filters}) async {
+    _logger.i('Fetching students from remote source with filters: $filters');
+    
+    // Create the input object for the query
+    final Map<String, dynamic> input = filters ?? {};
+    
+    return await _apiClient.fetch<List<StudentModel>>(
+      endpoint: StudentEndpoints.getStudents,
+      params: {'input': input},
+      fromJson: (data) {
+        if (data['getStudents'] == null) {
+          return [];
         }
-      '''),
-    );
-
-    final result = await _client.query(options);
-
-    if (result.hasException) {
-      _logger.e('Error fetching students: ${result.exception}');
-      return Left(ServerFailure('Error fetching students'));
-    }
-
-    final List<StudentModel> students = (result.data!['students'] as List)
-        .map((json) => StudentModel.fromJson(json))
-        .toList();
-    _logger.i('Fetched ${students.length} students from remote source');
-    return Right(students);
+        
+        return (data['getStudents'] as List)
+          .map((json) => StudentModel.fromJson(json))
+          .toList();
+      },
+    ).then((result) {
+      return result.fold(
+        (failure) {
+          _logger.e('Error fetching students: $failure');
+          return Left(failure);
+        },
+        (students) {
+          _logger.i('Fetched ${students.length} students from remote source');
+          return Right(students);
+        }
+      );
+    });
   }
 
   @override
   Future<Either<Failure, StudentModel>> getStudentById(String id) async {
     _logger.i('Fetching student with ID: $id');
-    final QueryOptions options = QueryOptions(
-      document: gql(r'''
-        query GetStudentById(
-          $id: String!
-        ) {
-          student(id: $id) {
-            id
-            userId
-            fullName
-            major
-            graduationYear
-            enrollmentYear
-            skills
-          }
+    
+    return await _apiClient.fetch<StudentModel>(
+      endpoint: StudentEndpoints.getStudentById,
+      params: {'id': id},
+      fromJson: (data) {
+        if (data['student'] == null) {
+          throw StudentFailure.notFound();
         }
-      '''),
-      variables: {'id': id},
-    );
-
-    final result = await _client.query(options);
-
-    if (result.hasException) {
-      _logger.e('Error fetching student: ${result.exception}');
-      throw Exception('Failed to fetch student');
-    }
-
-    return Right(StudentModel.fromJson(result.data?['student']));
+        return StudentModel.fromJson(data['student']);
+      },
+    ).then((result) {
+      return result.fold(
+        (failure) {
+          _logger.e('Error fetching student: $failure');
+          return Left(failure);
+        },
+        (student) {
+          _logger.i('Fetched student: ${student.fullName}');
+          return Right(student);
+        }
+      );
+    });
   }
 
   @override
   Future<Either<Failure, StudentModel>> getStudentByUserId(String userId) async {
-    try {
-      final response = await _client.query(QueryOptions(
-        document: gql(r'''
-          query GetStudentByUserId(
-            $userId: String!
-          ) {
-            student(userId: $userId) {
-              id
-              userId
-              fullName
-              major
-              graduationYear
-              enrollmentYear
-              skills
-            }
-          }
-        '''),
-        variables: {'userId': userId},
-      ));
-      
-      if (response.hasException) {
-        _logger.e('Error fetching student by user ID: ${response.exception}');
-        throw Exception('Failed to fetch student by user ID');
-      }
-
-      final studentData = response.data?['student'];
-      if (studentData == null) {
-        return Left(ServerFailure('Student not found'));
-      }
-      return Right(StudentModel.fromJson(studentData));
-    } catch (e) {
-      return Left(ServerFailure('Error getting student by user ID: ${e.toString()}'));
-    }
+    _logger.i('Fetching student with user ID: $userId');
+    
+    return await _apiClient.fetch<StudentModel>(
+      endpoint: StudentEndpoints.getStudentByUserId,
+      params: {'userId': userId},
+      fromJson: (data) {
+        if (data['student'] == null) {
+          throw StudentFailure.notFound();
+        }
+        return StudentModel.fromJson(data['student']);
+      },
+    ).then((result) {
+      return result.fold(
+        (failure) {
+          _logger.e('Error fetching student by user ID: $failure');
+          return Left(failure);
+        },
+        (student) {
+          _logger.i('Fetched student: ${student.fullName}');
+          return Right(student);
+        }
+      );
+    });
   }
 
   @override
   Future<Either<Failure, bool>> addStudent(StudentModel student) async {
     _logger.i('Adding student: ${student.fullName}');
-    final MutationOptions options = MutationOptions(
-      document: gql(r'''
-        mutation AddStudent(
-          $student: StudentInput!
-        ) {
-          addStudent(student: $student) {
-            id
-          }
+    
+    return await _apiClient.send<bool>(
+      endpoint: StudentEndpoints.addStudent,
+      data: {'student': student.toJson()},
+      fromJson: (data) {
+        if (data['addStudent'] == null) {
+          throw ServerFailure('Error adding student');
         }
-      '''),
-      variables: {'student': student.toJson()},
-    );
-
-    final result = await _client.mutate(options);
-
-    if (result.hasException) {
-      _logger.e('Error adding student: ${result.exception}');
-      return Left(ServerFailure('Error adding student'));
-    }
-    return Right(true);
+        return true;
+      },
+    ).then((result) {
+      return result.fold(
+        (failure) {
+          _logger.e('Error adding student: $failure');
+          return Left(failure);
+        },
+        (_) {
+          _logger.i('Student added successfully: ${student.fullName}');
+          return const Right(true);
+        }
+      );
+    });
   }
 
   @override
   Future<Either<Failure, bool>> updateStudent(StudentModel student) async {
     _logger.i('Updating student: ${student.fullName}');
-    final MutationOptions options = MutationOptions(
-      document: gql(r'''
-        mutation UpdateStudent(
-          $student: StudentInput!
-        ) {
-          updateStudent(student: $student) {
-            id
-          }
+    
+    return await _apiClient.send<bool>(
+      endpoint: StudentEndpoints.updateStudent,
+      data: {'student': student.toJson()},
+      fromJson: (data) {
+        if (data['updateStudent'] == null) {
+          throw ServerFailure('Error updating student');
         }
-      '''),
-      variables: {'student': student.toJson()},
-    );
-
-    final result = await _client.mutate(options);
-
-    if (result.hasException) {
-      _logger.e('Error updating student: ${result.exception}');
-      return Left(ServerFailure('Error updating student'));
-    }
-    return Right(true);
+        return true;
+      },
+    ).then((result) {
+      return result.fold(
+        (failure) {
+          _logger.e('Error updating student: $failure');
+          return Left(failure);
+        },
+        (_) {
+          _logger.i('Student updated successfully: ${student.fullName}');
+          return const Right(true);
+        }
+      );
+    });
   }
 
   @override
   Future<Either<Failure, bool>> deleteStudent(String id) async {
     _logger.i('Deleting student with ID: $id');
-    final MutationOptions options = MutationOptions(
-      document: gql(r'''
-        mutation DeleteStudent(
-          $id: String!
-        ) {
-          deleteStudent(id: $id) {
-            id
-          }
+    
+    return await _apiClient.send<bool>(
+      endpoint: StudentEndpoints.deleteStudent,
+      data: {'id': id},
+      fromJson: (data) {
+        if (data['deleteStudent'] == null) {
+          throw ServerFailure('Error deleting student');
         }
-      '''),
-      variables: {'id': id},
-    );
-
-    final result = await _client.mutate(options);
-
-    if (result.hasException) {
-      _logger.e('Error deleting student: ${result.exception}');
-      return Left(ServerFailure('Error deleting student'));
-    }
-    return Right(true);
+        return true;
+      },
+    ).then((result) {
+      return result.fold(
+        (failure) {
+          _logger.e('Error deleting student: $failure');
+          return Left(failure);
+        },
+        (_) {
+          _logger.i('Student deleted successfully with ID: $id');
+          return const Right(true);
+        }
+      );
+    });
   }
 }

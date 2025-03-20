@@ -18,11 +18,11 @@ GraphQLClientAdapter graphQLClientAdapter(Ref ref) {
 
 /// Class adapter để kết nối GraphQL service với IApiClient interface
 class GraphQLClientAdapter implements IApiClient {
-  final BaseGraphQLService _graphQLService;
+  final IGraphQLService _graphQLService;
   final LoggerService _logger;
 
   GraphQLClientAdapter({
-    required BaseGraphQLService service,
+    required IGraphQLService service,
     required LoggerService logger,
   })  : _graphQLService = service,
         _logger = logger;

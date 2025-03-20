@@ -8,6 +8,8 @@ import 'package:mobile_app/features/auth/domain/entities/user_entity.dart';
 import 'package:mobile_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:mobile_app/features/auth/domain/value_objects/user_role.dart';
 import 'package:mobile_app/features/auth/presentation/providers/usecase_providers.dart';
+import 'package:mobile_app/features/student/presentation/providers/student_provider.dart';
+import 'package:mobile_app/features/student/presentation/providers/student_repository_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -187,11 +189,41 @@ class AuthNotifier extends _$AuthNotifier {
     
     switch (user.role) {
       case UserRole.student:
+        // Fetch student information by userId
+        _fetchStudentInformation(user.id);
         navigation.replace(RoutePaths.student);
         break;
       case UserRole.enterprise:
         navigation.replace(RoutePaths.enterprise);
         break;
+    }
+  }
+
+  Future<void> _fetchStudentInformation(String userId) async {
+    try {
+      _logger.i('Fetching student information for user ID: $userId');
+      
+      // Get the student repository
+      final studentRepository = ref.read(studentRepositoryProvider);
+      
+      // Call the repository method to get student by userId
+      final result = await studentRepository.getStudentByUserId(userId);
+      
+      // Handle the result
+      result.fold(
+        (failure) {
+          _logger.e('Failed to fetch student information: ${failure.message}');
+        },
+        (student) {
+          _logger.i('Successfully fetched student: ${student.fullName}');
+          
+          // Refresh the student state to trigger a reload
+          final studentNotifier = ref.read(studentNotifierProvider.notifier);
+          studentNotifier.refreshStudent();
+        },
+      );
+    } catch (e) {
+      _logger.e('Unexpected error fetching student information: $e');
     }
   }
 
