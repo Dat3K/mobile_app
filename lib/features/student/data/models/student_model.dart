@@ -12,12 +12,11 @@ class StudentModel with _$StudentModel {
   const factory StudentModel({
     @HiveField(0) required String id,
     @HiveField(1) required String userId,
-    @HiveField(2) required String fullName,
-    @HiveField(3) required String major,
-    @HiveField(4) required int graduationYear,
-    @HiveField(5) required int enrollmentYear,
-    @HiveField(6) required List<String> skills,
-    @HiveField(7) String? currentEnterpriseId,
+    @HiveField(2) required String major,
+    @HiveField(3) required int graduationYear,
+    @HiveField(4) required int enrollmentYear,
+    @HiveField(5) required List<String> skills,
+    @HiveField(6) String? currentEnterpriseId,
   }) = _StudentModel;
 
   factory StudentModel.fromJson(Map<String, dynamic> json) =>
@@ -28,7 +27,6 @@ class StudentModel with _$StudentModel {
   StudentEntity toDomain() => StudentEntity(
         id: id,
         userId: userId,
-        fullName: fullName,
         major: major,
         graduationYear: graduationYear,
         enrollmentYear: enrollmentYear,
@@ -39,17 +37,15 @@ class StudentModel with _$StudentModel {
   static StudentModel fromDomain(StudentEntity entity) => StudentModel(
         id: entity.id,
         userId: entity.userId,
-        fullName: entity.fullName,
         major: entity.major,
         graduationYear: entity.graduationYear,
         enrollmentYear: entity.enrollmentYear,
         skills: entity.skills,
-        currentEnterpriseId: entity.currentEnterpriseId,
+        currentEnterpriseId: entity.currentEnterpriseId ?? '',
       );
 
   Map<String, dynamic> toCreateJson() => {
         'userId': userId,
-        'fullName': fullName,
         'major': major,
         'graduationYear': graduationYear,
         'enrollmentYear': enrollmentYear,
@@ -58,7 +54,6 @@ class StudentModel with _$StudentModel {
   };
 
   Map<String, dynamic> toUpdateJson() => {
-        'fullName': fullName,
         'major': major,
         'graduationYear': graduationYear,
         'enrollmentYear': enrollmentYear,

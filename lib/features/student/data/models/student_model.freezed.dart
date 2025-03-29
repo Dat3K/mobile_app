@@ -25,16 +25,14 @@ mixin _$StudentModel {
   @HiveField(1)
   String get userId => throw _privateConstructorUsedError;
   @HiveField(2)
-  String get fullName => throw _privateConstructorUsedError;
-  @HiveField(3)
   String get major => throw _privateConstructorUsedError;
-  @HiveField(4)
+  @HiveField(3)
   int get graduationYear => throw _privateConstructorUsedError;
-  @HiveField(5)
+  @HiveField(4)
   int get enrollmentYear => throw _privateConstructorUsedError;
-  @HiveField(6)
+  @HiveField(5)
   List<String> get skills => throw _privateConstructorUsedError;
-  @HiveField(7)
+  @HiveField(6)
   String? get currentEnterpriseId => throw _privateConstructorUsedError;
 
   /// Serializes this StudentModel to a JSON map.
@@ -56,12 +54,11 @@ abstract class $StudentModelCopyWith<$Res> {
   $Res call(
       {@HiveField(0) String id,
       @HiveField(1) String userId,
-      @HiveField(2) String fullName,
-      @HiveField(3) String major,
-      @HiveField(4) int graduationYear,
-      @HiveField(5) int enrollmentYear,
-      @HiveField(6) List<String> skills,
-      @HiveField(7) String? currentEnterpriseId});
+      @HiveField(2) String major,
+      @HiveField(3) int graduationYear,
+      @HiveField(4) int enrollmentYear,
+      @HiveField(5) List<String> skills,
+      @HiveField(6) String? currentEnterpriseId});
 }
 
 /// @nodoc
@@ -81,7 +78,6 @@ class _$StudentModelCopyWithImpl<$Res, $Val extends StudentModel>
   $Res call({
     Object? id = null,
     Object? userId = null,
-    Object? fullName = null,
     Object? major = null,
     Object? graduationYear = null,
     Object? enrollmentYear = null,
@@ -96,10 +92,6 @@ class _$StudentModelCopyWithImpl<$Res, $Val extends StudentModel>
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
-              as String,
-      fullName: null == fullName
-          ? _value.fullName
-          : fullName // ignore: cast_nullable_to_non_nullable
               as String,
       major: null == major
           ? _value.major
@@ -136,12 +128,11 @@ abstract class _$$StudentModelImplCopyWith<$Res>
   $Res call(
       {@HiveField(0) String id,
       @HiveField(1) String userId,
-      @HiveField(2) String fullName,
-      @HiveField(3) String major,
-      @HiveField(4) int graduationYear,
-      @HiveField(5) int enrollmentYear,
-      @HiveField(6) List<String> skills,
-      @HiveField(7) String? currentEnterpriseId});
+      @HiveField(2) String major,
+      @HiveField(3) int graduationYear,
+      @HiveField(4) int enrollmentYear,
+      @HiveField(5) List<String> skills,
+      @HiveField(6) String? currentEnterpriseId});
 }
 
 /// @nodoc
@@ -159,7 +150,6 @@ class __$$StudentModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? userId = null,
-    Object? fullName = null,
     Object? major = null,
     Object? graduationYear = null,
     Object? enrollmentYear = null,
@@ -174,10 +164,6 @@ class __$$StudentModelImplCopyWithImpl<$Res>
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
-              as String,
-      fullName: null == fullName
-          ? _value.fullName
-          : fullName // ignore: cast_nullable_to_non_nullable
               as String,
       major: null == major
           ? _value.major
@@ -209,12 +195,11 @@ class _$StudentModelImpl extends _StudentModel {
   const _$StudentModelImpl(
       {@HiveField(0) required this.id,
       @HiveField(1) required this.userId,
-      @HiveField(2) required this.fullName,
-      @HiveField(3) required this.major,
-      @HiveField(4) required this.graduationYear,
-      @HiveField(5) required this.enrollmentYear,
-      @HiveField(6) required final List<String> skills,
-      @HiveField(7) this.currentEnterpriseId})
+      @HiveField(2) required this.major,
+      @HiveField(3) required this.graduationYear,
+      @HiveField(4) required this.enrollmentYear,
+      @HiveField(5) required final List<String> skills,
+      @HiveField(6) this.currentEnterpriseId})
       : _skills = skills,
         super._();
 
@@ -229,19 +214,16 @@ class _$StudentModelImpl extends _StudentModel {
   final String userId;
   @override
   @HiveField(2)
-  final String fullName;
-  @override
-  @HiveField(3)
   final String major;
   @override
-  @HiveField(4)
+  @HiveField(3)
   final int graduationYear;
   @override
-  @HiveField(5)
+  @HiveField(4)
   final int enrollmentYear;
   final List<String> _skills;
   @override
-  @HiveField(6)
+  @HiveField(5)
   List<String> get skills {
     if (_skills is EqualUnmodifiableListView) return _skills;
     // ignore: implicit_dynamic_type
@@ -249,12 +231,12 @@ class _$StudentModelImpl extends _StudentModel {
   }
 
   @override
-  @HiveField(7)
+  @HiveField(6)
   final String? currentEnterpriseId;
 
   @override
   String toString() {
-    return 'StudentModel(id: $id, userId: $userId, fullName: $fullName, major: $major, graduationYear: $graduationYear, enrollmentYear: $enrollmentYear, skills: $skills, currentEnterpriseId: $currentEnterpriseId)';
+    return 'StudentModel(id: $id, userId: $userId, major: $major, graduationYear: $graduationYear, enrollmentYear: $enrollmentYear, skills: $skills, currentEnterpriseId: $currentEnterpriseId)';
   }
 
   @override
@@ -264,8 +246,6 @@ class _$StudentModelImpl extends _StudentModel {
             other is _$StudentModelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
-            (identical(other.fullName, fullName) ||
-                other.fullName == fullName) &&
             (identical(other.major, major) || other.major == major) &&
             (identical(other.graduationYear, graduationYear) ||
                 other.graduationYear == graduationYear) &&
@@ -282,7 +262,6 @@ class _$StudentModelImpl extends _StudentModel {
       runtimeType,
       id,
       userId,
-      fullName,
       major,
       graduationYear,
       enrollmentYear,
@@ -309,12 +288,11 @@ abstract class _StudentModel extends StudentModel {
   const factory _StudentModel(
       {@HiveField(0) required final String id,
       @HiveField(1) required final String userId,
-      @HiveField(2) required final String fullName,
-      @HiveField(3) required final String major,
-      @HiveField(4) required final int graduationYear,
-      @HiveField(5) required final int enrollmentYear,
-      @HiveField(6) required final List<String> skills,
-      @HiveField(7) final String? currentEnterpriseId}) = _$StudentModelImpl;
+      @HiveField(2) required final String major,
+      @HiveField(3) required final int graduationYear,
+      @HiveField(4) required final int enrollmentYear,
+      @HiveField(5) required final List<String> skills,
+      @HiveField(6) final String? currentEnterpriseId}) = _$StudentModelImpl;
   const _StudentModel._() : super._();
 
   factory _StudentModel.fromJson(Map<String, dynamic> json) =
@@ -328,21 +306,18 @@ abstract class _StudentModel extends StudentModel {
   String get userId;
   @override
   @HiveField(2)
-  String get fullName;
-  @override
-  @HiveField(3)
   String get major;
   @override
-  @HiveField(4)
+  @HiveField(3)
   int get graduationYear;
   @override
-  @HiveField(5)
+  @HiveField(4)
   int get enrollmentYear;
   @override
-  @HiveField(6)
+  @HiveField(5)
   List<String> get skills;
   @override
-  @HiveField(7)
+  @HiveField(6)
   String? get currentEnterpriseId;
 
   /// Create a copy of StudentModel

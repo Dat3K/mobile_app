@@ -215,7 +215,7 @@ class AuthNotifier extends _$AuthNotifier {
           _logger.e('Failed to fetch student information: ${failure.message}');
         },
         (student) {
-          _logger.i('Successfully fetched student: ${student.fullName}');
+          _logger.i('Successfully fetched student: ${student.userId}');
           
           // Refresh the student state to trigger a reload
           final studentNotifier = ref.read(studentNotifierProvider.notifier);

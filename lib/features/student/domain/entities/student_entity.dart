@@ -5,9 +5,8 @@ part 'student_entity.freezed.dart';
 @freezed
 class StudentEntity with _$StudentEntity {
   const factory StudentEntity({
-    required String id,
+    required String id, 
     required String userId,
-    required String fullName,
     required String major,
     required int graduationYear,
     required int enrollmentYear,
@@ -21,7 +20,6 @@ class StudentEntity with _$StudentEntity {
   bool get isValid =>
     id.isNotEmpty &&
     userId.isNotEmpty &&
-    fullName.isNotEmpty &&
     major.isNotEmpty &&
     graduationYear > enrollmentYear &&
     enrollmentYear > 2000;

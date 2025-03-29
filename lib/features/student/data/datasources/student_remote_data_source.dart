@@ -86,7 +86,7 @@ class StudentRemoteDataSource implements IStudentRemoteDataSource {
           return Left(failure);
         },
         (student) {
-          _logger.i('Fetched student: ${student.fullName}');
+          _logger.i('Fetched student: ${student.userId}');
           return Right(student);
         }
       );
@@ -113,7 +113,7 @@ class StudentRemoteDataSource implements IStudentRemoteDataSource {
           return Left(failure);
         },
         (student) {
-          _logger.i('Fetched student: ${student.fullName}');
+          _logger.i('Fetched student: ${student.userId}');
           return Right(student);
         }
       );
@@ -122,7 +122,7 @@ class StudentRemoteDataSource implements IStudentRemoteDataSource {
 
   @override
   Future<Either<Failure, bool>> addStudent(StudentModel student) async {
-    _logger.i('Adding student: ${student.fullName}');
+    _logger.i('Adding student: ${student.userId}');
     
     return await _apiClient.send<bool>(
       endpoint: StudentEndpoints.addStudent,
@@ -140,7 +140,7 @@ class StudentRemoteDataSource implements IStudentRemoteDataSource {
           return Left(failure);
         },
         (_) {
-          _logger.i('Student added successfully: ${student.fullName}');
+          _logger.i('Student added successfully: ${student.userId}');
           return const Right(true);
         }
       );
@@ -149,7 +149,7 @@ class StudentRemoteDataSource implements IStudentRemoteDataSource {
 
   @override
   Future<Either<Failure, bool>> updateStudent(StudentModel student) async {
-    _logger.i('Updating student: ${student.fullName}');
+    _logger.i('Updating student: ${student.userId}');
     
     return await _apiClient.send<bool>(
       endpoint: StudentEndpoints.updateStudent,
@@ -167,7 +167,7 @@ class StudentRemoteDataSource implements IStudentRemoteDataSource {
           return Left(failure);
         },
         (_) {
-          _logger.i('Student updated successfully: ${student.fullName}');
+          _logger.i('Student updated successfully: ${student.userId}');
           return const Right(true);
         }
       );

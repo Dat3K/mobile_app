@@ -18,7 +18,6 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$StudentEntity {
   String get id => throw _privateConstructorUsedError;
   String get userId => throw _privateConstructorUsedError;
-  String get fullName => throw _privateConstructorUsedError;
   String get major => throw _privateConstructorUsedError;
   int get graduationYear => throw _privateConstructorUsedError;
   int get enrollmentYear => throw _privateConstructorUsedError;
@@ -41,7 +40,6 @@ abstract class $StudentEntityCopyWith<$Res> {
   $Res call(
       {String id,
       String userId,
-      String fullName,
       String major,
       int graduationYear,
       int enrollmentYear,
@@ -66,7 +64,6 @@ class _$StudentEntityCopyWithImpl<$Res, $Val extends StudentEntity>
   $Res call({
     Object? id = null,
     Object? userId = null,
-    Object? fullName = null,
     Object? major = null,
     Object? graduationYear = null,
     Object? enrollmentYear = null,
@@ -81,10 +78,6 @@ class _$StudentEntityCopyWithImpl<$Res, $Val extends StudentEntity>
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
-              as String,
-      fullName: null == fullName
-          ? _value.fullName
-          : fullName // ignore: cast_nullable_to_non_nullable
               as String,
       major: null == major
           ? _value.major
@@ -121,7 +114,6 @@ abstract class _$$StudentEntityImplCopyWith<$Res>
   $Res call(
       {String id,
       String userId,
-      String fullName,
       String major,
       int graduationYear,
       int enrollmentYear,
@@ -144,7 +136,6 @@ class __$$StudentEntityImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? userId = null,
-    Object? fullName = null,
     Object? major = null,
     Object? graduationYear = null,
     Object? enrollmentYear = null,
@@ -159,10 +150,6 @@ class __$$StudentEntityImplCopyWithImpl<$Res>
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
-              as String,
-      fullName: null == fullName
-          ? _value.fullName
-          : fullName // ignore: cast_nullable_to_non_nullable
               as String,
       major: null == major
           ? _value.major
@@ -194,7 +181,6 @@ class _$StudentEntityImpl extends _StudentEntity {
   const _$StudentEntityImpl(
       {required this.id,
       required this.userId,
-      required this.fullName,
       required this.major,
       required this.graduationYear,
       required this.enrollmentYear,
@@ -207,8 +193,6 @@ class _$StudentEntityImpl extends _StudentEntity {
   final String id;
   @override
   final String userId;
-  @override
-  final String fullName;
   @override
   final String major;
   @override
@@ -228,7 +212,7 @@ class _$StudentEntityImpl extends _StudentEntity {
 
   @override
   String toString() {
-    return 'StudentEntity(id: $id, userId: $userId, fullName: $fullName, major: $major, graduationYear: $graduationYear, enrollmentYear: $enrollmentYear, skills: $skills, currentEnterpriseId: $currentEnterpriseId)';
+    return 'StudentEntity(id: $id, userId: $userId, major: $major, graduationYear: $graduationYear, enrollmentYear: $enrollmentYear, skills: $skills, currentEnterpriseId: $currentEnterpriseId)';
   }
 
   @override
@@ -238,8 +222,6 @@ class _$StudentEntityImpl extends _StudentEntity {
             other is _$StudentEntityImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.userId, userId) || other.userId == userId) &&
-            (identical(other.fullName, fullName) ||
-                other.fullName == fullName) &&
             (identical(other.major, major) || other.major == major) &&
             (identical(other.graduationYear, graduationYear) ||
                 other.graduationYear == graduationYear) &&
@@ -255,7 +237,6 @@ class _$StudentEntityImpl extends _StudentEntity {
       runtimeType,
       id,
       userId,
-      fullName,
       major,
       graduationYear,
       enrollmentYear,
@@ -275,7 +256,6 @@ abstract class _StudentEntity extends StudentEntity {
   const factory _StudentEntity(
       {required final String id,
       required final String userId,
-      required final String fullName,
       required final String major,
       required final int graduationYear,
       required final int enrollmentYear,
@@ -287,8 +267,6 @@ abstract class _StudentEntity extends StudentEntity {
   String get id;
   @override
   String get userId;
-  @override
-  String get fullName;
   @override
   String get major;
   @override
