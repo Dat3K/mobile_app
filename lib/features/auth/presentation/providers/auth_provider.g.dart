@@ -116,13 +116,14 @@ final failureMessageProvider = AutoDisposeProvider<String?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FailureMessageRef = AutoDisposeProviderRef<String?>;
-String _$authNotifierHash() => r'c91be504eb443ca11a271ef427d3275badf2158f';
+String _$authNotifierHash() => r'7504c71204fa0802da2f410c9157f195306c3e68';
 
 /// Auth notifier để quản lý state authentication
 ///
 /// Copied from [AuthNotifier].
 @ProviderFor(AuthNotifier)
-final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>.internal(
+final authNotifierProvider =
+    AutoDisposeNotifierProvider<AuthNotifier, AuthState>.internal(
   AuthNotifier.new,
   name: r'authNotifierProvider',
   debugGetCreateSourceHash:
@@ -131,6 +132,6 @@ final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef _$AuthNotifier = Notifier<AuthState>;
+typedef _$AuthNotifier = AutoDisposeNotifier<AuthState>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
