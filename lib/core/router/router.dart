@@ -5,8 +5,9 @@ import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mobile_app/features/student/presentation/pages/student_home_page.dart';
 import 'package:mobile_app/features/enterprise/presentation/pages/enterprise_home_page.dart';
-import 'package:mobile_app/core/widgets/error_page.dart';
+import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:mobile_app/core/widgets/app_scaffold.dart';
+import 'package:mobile_app/core/error/failures.dart';
 import 'package:flutter/material.dart';
 
 part 'router.g.dart';
@@ -20,7 +21,10 @@ GoRouter router(Ref ref) {
   return GoRouter(
     initialLocation: RoutePaths.login,
     debugLogDiagnostics: true,
-    errorBuilder: (context, state) => ErrorPage(error: state.error),
+    errorBuilder: (context, state) => FullscreenErrorDisplay(
+      failure: HttpFailure(state.error?.toString() ?? 'Navigation error'),
+      onRetry: () => context.go(RoutePaths.login),
+    ),
     routes: [
       // Public routes (không yêu cầu đăng nhập)
       GoRoute(

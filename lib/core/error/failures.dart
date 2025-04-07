@@ -59,6 +59,13 @@ class ForbiddenFailure extends AuthFailure {
   factory ForbiddenFailure.accountLocked() => const ForbiddenFailure('Account is locked');
 }
 
+class RetryFailure extends AuthFailure {
+  const RetryFailure(super.message);
+
+  factory RetryFailure.retryFailed() => const RetryFailure('Retry failed');
+  factory RetryFailure.retryLimitReached() => const RetryFailure('Retry limit reached');
+}
+
 /// Data related failures
 abstract class DataFailure extends Failure {
   const DataFailure(super.message);

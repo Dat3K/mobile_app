@@ -5,6 +5,9 @@ import 'package:mobile_app/core/router/router.dart';
 import 'package:mobile_app/core/storage/hive_storage.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/widgets/debug_menu.dart';
+import 'package:mobile_app/core/widgets/error_boundary.dart';
+import 'package:mobile_app/core/error/error_handler.dart';
+import 'package:mobile_app/core/error/failures.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:device_preview/device_preview.dart';
@@ -30,7 +33,24 @@ void main() async {
 
     // Set up error handlers for async errors
     FlutterError.onError = (FlutterErrorDetails details) {
+      // Log the error
       FlutterError.presentError(details);
+      
+      // Handle the error with our error handler
+      container.read(errorHandlerProvider.notifier).handleException(
+        details.exception,
+        details.stack,
+      );
+    };
+
+    // Set up error handler for platform errors
+    PlatformDispatcher.instance.onError = (error, stack) {
+      // Handle the error with our error handler
+      container.read(errorHandlerProvider.notifier).handleException(
+        error,
+        stack,
+      );
+      return true;
     };
 
     runApp(
@@ -69,57 +89,96 @@ class MyApp extends ConsumerWidget {
     final brightness = MediaQuery.of(context).platformBrightness;
     final theme = ref.watch(currentThemeProvider(brightness));
 
-    // Khởi tạo ScreenUtil và bọc ứng dụng
-    return AppScreenUtil.init(
-      child: ShadApp.materialRouter(
-        title: 'Mobile-app',
-        theme: theme,
-        themeMode: themeMode,
-        debugShowCheckedModeBanner: false,
-        routerDelegate: router.routerDelegate,
-        routeInformationParser: router.routeInformationParser,
-        routeInformationProvider: router.routeInformationProvider,
-        localizationsDelegates: context.localizationDelegates,
-        supportedLocales: context.supportedLocales,
-        locale: context.locale,
-        builder: (context, child) {
-          // In thông tin màn hình trong debug mode
-          if (kDebugMode) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              AppScreenUtil.reportScreenInfo(context);
-            });
-          }
-          
-          // Wrap với DevicePreview trong debug mode
-          Widget app = DevicePreview.appBuilder(context, child);
+    // Wrap the entire app with an ErrorBoundary to catch unhandled errors
+    return ErrorBoundary(
+      fullScreen: true,
+      onRetry: () {
+        // Clear errors and rebuild the app
+        ref.read(errorHandlerProvider.notifier).clearError();
+      },
+      child: AppScreenUtil.init(
+        child: ShadApp.materialRouter(
+          title: 'Mobile-app',
+          theme: theme,
+          themeMode: themeMode,
+          debugShowCheckedModeBanner: false,
+          routerConfig: router,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+          builder: (context, child) {
+            // Watch for current errors
+            final currentError = ref.watch(currentErrorProvider);
+            
+            // In thông tin màn hình trong debug mode
+            if (kDebugMode) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                AppScreenUtil.reportScreenInfo(context);
+              });
+            }
+            
+            // Wrap với DevicePreview trong debug mode
+            Widget app = DevicePreview.appBuilder(context, child);
 
-          // Thêm debug menu trong debug mode
-          if (kDebugMode) {
-            app = Scaffold(
-              body: Stack(
-                children: [
-                  app,
-                  Positioned(
-                    right: 0,
-                    top: 100.h,
-                    child: Builder(
-                      builder: (context) => DebugButton(
+            // If there's a current error in the global handler and we're not already
+            // showing it via the ErrorBoundary, show an error snackbar
+            if (currentError != null && child != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  ShadToaster.of(context).show(
+                    ShadToast.destructive(
+                      title: Text(_getErrorTitle(currentError)),
+                      description: Text(currentError.message),
+                      action: ShadButton.destructive(
+                        child: const Text('Dismiss'),
                         onPressed: () {
-                          Scaffold.of(context).openEndDrawer();
+                          ref.read(errorHandlerProvider.notifier).clearError();
+                          ShadToaster.of(context).hide();
                         },
                       ),
                     ),
-                  ),
-                ],
-              ),
-              endDrawer: const DebugMenu(),
-            );
-          }
+                  );
+                }
+              });
+            }
 
-          return app;
-        },
+            // Thêm debug menu trong debug mode
+            if (kDebugMode) {
+              app = Scaffold(
+                body: Stack(
+                  children: [
+                    app,
+                    Positioned(
+                      right: 0,
+                      top: 100.h,
+                      child: Builder(
+                        builder: (context) => DebugButton(
+                          onPressed: () {
+                            Scaffold.of(context).openEndDrawer();
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                endDrawer: const DebugMenu(),
+              );
+            }
+
+            return app;
+          },
+        ),
       ),
     );
+  }
+
+  // Helper method to get error title based on failure type
+  String _getErrorTitle(Failure failure) {
+    if (failure is ConnectionFailure) return 'Connection Error';
+    if (failure is ServerFailure) return 'Server Error';
+    if (failure is AuthFailure) return 'Authentication Error';
+    if (failure is ValidationFailure) return 'Validation Error';
+    return 'Error';
   }
 }
 

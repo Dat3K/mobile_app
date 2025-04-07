@@ -12,6 +12,26 @@
     "or": "OR",
     "please_wait": "Please wait..."
   },
+  "error": {
+    "general_error": "Error Occurred",
+    "connection_error": "Connection Error",
+    "server_error": "Server Error",
+    "auth_error": "Authentication Error",
+    "validation_error": "Validation Error",
+    "not_found_error": "Not Found Error",
+    "permission_error": "Permission Error",
+    "try_again": "Please try again",
+    "connectivity": {
+      "no_internet": "No internet connection",
+      "connection_timeout": "Connection timeout",
+      "check_connection": "Please check your internet connection"
+    },
+    "server": {
+      "internal": "Internal server error",
+      "maintenance": "Server under maintenance",
+      "timeout": "Request timed out"
+    }
+  },
   "auth": {
     "login": "Login",
     "logout": "Logout",

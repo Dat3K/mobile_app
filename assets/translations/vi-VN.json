@@ -1,6 +1,6 @@
 {
   "common": {
-    "app_name": "Mobile App",
+    "app_name": "Ứng Dụng Di Động",
     "loading": "Đang tải...",
     "error": "Lỗi",
     "success": "Thành công",
@@ -10,7 +10,27 @@
     "yes": "Có",
     "no": "Không",
     "or": "HOẶC",
-    "please_wait": "Vui lòng đợi..."
+    "please_wait": "Vui lòng chờ..."
+  },
+  "error": {
+    "general_error": "Đã Xảy Ra Lỗi",
+    "connection_error": "Lỗi Kết Nối",
+    "server_error": "Lỗi Máy Chủ",
+    "auth_error": "Lỗi Xác Thực",
+    "validation_error": "Lỗi Xác Nhận",
+    "not_found_error": "Không Tìm Thấy",
+    "permission_error": "Lỗi Quyền Truy Cập",
+    "try_again": "Vui lòng thử lại",
+    "connectivity": {
+      "no_internet": "Không có kết nối internet",
+      "connection_timeout": "Kết nối hết thời gian",
+      "check_connection": "Vui lòng kiểm tra kết nối internet của bạn"
+    },
+    "server": {
+      "internal": "Lỗi máy chủ nội bộ",
+      "maintenance": "Máy chủ đang bảo trì",
+      "timeout": "Yêu cầu hết thời gian"
+    }
   },
   "auth": {
     "login": "Đăng nhập",
@@ -21,16 +41,16 @@
     "login_description": "Nhập thông tin đăng nhập để truy cập tài khoản của bạn",
     "enter_email": "Nhập email của bạn",
     "enter_password": "Nhập mật khẩu của bạn",
-    "remember_me": "Ghi nhớ đăng nhập",
+    "remember_me": "Ghi nhớ tôi",
     "forgot_password": "Quên mật khẩu?",
     "dont_have_account": "Chưa có tài khoản?",
     "sign_up": "Đăng ký",
-    "auth_error": "Lỗi xác thực",
+    "auth_error": "Lỗi Xác Thực",
     "try_again": "Thử lại",
     "validation": {
-      "email_required": "Vui lòng nhập email",
+      "email_required": "Email là bắt buộc",
       "email_invalid": "Email không hợp lệ",
-      "password_required": "Vui lòng nhập mật khẩu",
+      "password_required": "Mật khẩu là bắt buộc",
       "password_length": "Mật khẩu phải có ít nhất 6 ký tự"
     }
   },
@@ -39,8 +59,8 @@
     "explore": "Khám phá",
     "register": "Đăng ký",
     "notifications": "Thông báo",
-    "profile": "Cá nhân",
-    "post": "Đăng tin",
+    "profile": "Hồ sơ",
+    "post": "Đăng",
     "applicants": "Ứng viên",
     "internships": "Thực tập",
     "events": "Sự kiện"

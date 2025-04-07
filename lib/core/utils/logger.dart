@@ -54,7 +54,11 @@ class LoggerService implements ILoggerService {
 
   @override
   void e(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.e(message, error: error, stackTrace: stackTrace);
+    if (error is StackTrace) {
+      _logger.e(message, stackTrace: error);
+    } else {
+      _logger.e(message, error: error, stackTrace: stackTrace);
+    }
   }
 }
 
