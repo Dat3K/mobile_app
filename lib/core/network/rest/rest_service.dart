@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/error/dio_exceptions.dart';
 import 'package:mobile_app/core/error/error_handler.dart';
-import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'package:mobile_app/core/network/rest/dio_client.dart';
 import 'package:mobile_app/core/network/rest/rest_service_interface.dart';

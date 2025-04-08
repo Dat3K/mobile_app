@@ -14,7 +14,6 @@ CacheOptions cacheOptions(Ref ref) {
   return CacheOptions(
     store: MemCacheStore(),
     policy: CachePolicy.request,
-    hitCacheOnErrorExcept: [401, 403],
     maxStale: const Duration(days: 1),
     priority: CachePriority.normal,
     keyBuilder: CacheOptions.defaultCacheKeyBuilder,
