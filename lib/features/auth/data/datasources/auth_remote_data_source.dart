@@ -1,13 +1,7 @@
+import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/api_client_interface.dart';
 import 'package:mobile_app/features/auth/data/models/user_model.dart';
-
-/// API endpoints for auth-related operations
-class AuthEndpoints {
-  static const String login = '/login';
-  static const String register = '/register';
-  static const String logout = '/logout';
-}
 
 abstract class IAuthRemoteDataSource {
   Future<UserModel> login(String email, String password);
@@ -18,7 +12,9 @@ abstract class IAuthRemoteDataSource {
 class AuthRemoteDataSource implements IAuthRemoteDataSource {
   final IApiClient _apiClient;
 
-  AuthRemoteDataSource(this._apiClient);
+  AuthRemoteDataSource({
+    required IApiClient apiClient,
+  }) : _apiClient = apiClient;
 
   @override
   Future<UserModel> login(String email, String password) async {

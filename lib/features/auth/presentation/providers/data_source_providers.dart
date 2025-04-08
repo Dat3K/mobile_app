@@ -24,5 +24,5 @@ AuthLocalDataSource authLocalDataSource(Ref ref) {
 @riverpod
 AuthRemoteDataSource authRemoteDataSource(Ref ref) {
   final restClientAdapter = ref.watch(restClientAdapterProvider);
-  return AuthRemoteDataSource(restClientAdapter);
+  return AuthRemoteDataSource(apiClient: restClientAdapter);
 }

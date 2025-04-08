@@ -1,7 +1,8 @@
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/error/dio_exceptions.dart';
+import 'package:mobile_app/core/error/error_handler.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/network/rest/csrf_interceptor.dart';
 import 'package:mobile_app/core/network/rest/dio_client.dart';
@@ -19,12 +20,14 @@ DioService dioService(Ref ref) {
   final logger = ref.watch(loggerServiceProvider);
   final cookieService = ref.watch(cookieServiceProvider);
   final csrfInterceptor = ref.watch(csrfInterceptorProvider);
+  final errorHandler = ref.watch(errorHandlerProvider.notifier);
 
   return DioService(
     dio: dio,
     logger: logger,
     cookieService: cookieService,
     csrfInterceptor: csrfInterceptor,
+    errorHandler: errorHandler,
   );
 }
 
@@ -34,6 +37,7 @@ class DioService implements IRestService {
   final LoggerService _logger;
   final CookieService _cookieService;
   final CsrfInterceptor _csrfInterceptor;
+  final ErrorHandler _errorHandler;
   final _cancelTokens = <CancelToken>[];
 
   DioService({
@@ -41,10 +45,12 @@ class DioService implements IRestService {
     required LoggerService logger,
     required CookieService cookieService,
     required CsrfInterceptor csrfInterceptor,
+    required ErrorHandler errorHandler,
   })  : _dio = dio,
         _logger = logger,
         _cookieService = cookieService,
-        _csrfInterceptor = csrfInterceptor {
+        _csrfInterceptor = csrfInterceptor,
+        _errorHandler = errorHandler {
     _initDio();
   }
 
@@ -62,8 +68,9 @@ class DioService implements IRestService {
     // Khởi tạo CSRF token
     try {
       _logger.d('CSRF token initialized successfully');
-    } catch (e) {
-      _logger.e('Failed to initialize CSRF token: $e');
+    } catch (e, stackTrace) {
+      _logger.e('Failed to initialize CSRF token', e, stackTrace);
+      _errorHandler.handleException(e, stackTrace);
     }
   }
 
@@ -82,10 +89,15 @@ class DioService implements IRestService {
 
   /// Cấu hình cho mobile platform
   Future<void> _configureForMobile() async {
-    final cookieManager = await _cookieService.init();
-    if (cookieManager != null) {
-      _dio.interceptors.add(cookieManager);
-      _logger.d('Cookie manager initialized for mobile');
+    try {
+      final cookieManager = await _cookieService.init();
+      if (cookieManager != null) {
+        _dio.interceptors.add(cookieManager);
+        _logger.d('Cookie manager initialized for mobile');
+      }
+    } catch (e, stackTrace) {
+      _logger.e('Failed to initialize cookie manager', e, stackTrace);
+      _errorHandler.handleException(e, stackTrace);
     }
   }
 
@@ -101,48 +113,25 @@ class DioService implements IRestService {
 
   /// Xóa tất cả cookies
   Future<void> clearCookies() async {
-    await _cookieService.clearCookies();
+    try {
+      await _cookieService.clearCookies();
+    } catch (e, stackTrace) {
+      _logger.e('Failed to clear cookies', e, stackTrace);
+      _errorHandler.handleException(e, stackTrace);
+    }
   }
 
   /// Xử lý lỗi từ Dio Exception
-  Future<Never> _handleError(DioException e) async {
-    _logger.e('DioError: ${e.message}');
+  Future<Never> _handleError(DioException e, StackTrace stackTrace) async {
+    _logger.e('DioError: ${e.message}', e, stackTrace);
 
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.receiveTimeout:
-      case DioExceptionType.sendTimeout:
-        throw ConnectionFailure(e.message ?? 'Request timeout');
+    // Sử dụng DioExceptionHandler để chuyển đổi exception thành Failure
+    final failure = DioExceptionHandler.handleDioException(e);
 
-      case DioExceptionType.connectionError:
-        throw ConnectionFailure(e.message ?? 'Network connection error');
-
-      case DioExceptionType.badResponse:
-        final statusCode = e.response?.statusCode;
-        if (statusCode != null) {
-          if (statusCode >= 500) {
-            throw ServerFailure(e.response?.data?['message'] ?? 'Server error');
-          } else if (statusCode == 401) {
-            throw UnauthorizedFailure(
-                e.response?.data?['message'] ?? 'Unauthorized');
-          } else if (statusCode == 403) {
-            throw ForbiddenFailure(
-                e.response?.data?['message'] ?? 'Access forbidden');
-          } else if (statusCode == 404) {
-            throw HttpFailure.notFound();
-          }
-        }
-        throw HttpFailure.badRequest();
-
-      case DioExceptionType.cancel:
-        throw ConnectionFailure.timeout();
-
-      case DioExceptionType.badCertificate:
-        throw ConnectionFailure.badCertificate();
-
-      default:
-        throw ServerFailure.internal();
-    }
+    // Báo lỗi cho ErrorHandler toàn cục
+    _errorHandler.handleError(failure, stackTrace: stackTrace);
+    
+    throw failure;
   }
 
   @override
@@ -173,12 +162,20 @@ class DioService implements IRestService {
       _cancelTokens.remove(cancelToken);
 
       if (response.data == null) {
-        throw ServerFailure('Response data is null');
+        final nullResponseFailure = DioExceptionHandler.handleNullResponse();
+        _errorHandler.handleError(nullResponseFailure);
+        throw nullResponseFailure;
       }
 
       return response.data as T;
-    } on DioException catch (e) {
-      throw await _handleError(e);
+    } on DioException catch (e, stackTrace) {
+      throw await _handleError(e, stackTrace);
+    } catch (e, stackTrace) {
+      // Xử lý các lỗi khác không phải từ Dio
+      _logger.e('Non-Dio error during GET request to $path', e, stackTrace);
+      final nonDioFailure = DioExceptionHandler.handleNonDioError(e);
+      _errorHandler.handleException(e, stackTrace);
+      throw nonDioFailure;
     }
   }
 
@@ -204,12 +201,19 @@ class DioService implements IRestService {
       _cancelTokens.remove(cancelToken);
 
       if (response.data == null) {
-        throw ServerFailure('Response data is null');
+        final nullResponseFailure = DioExceptionHandler.handleNullResponse();
+        _errorHandler.handleError(nullResponseFailure);
+        throw nullResponseFailure;
       }
 
       return response.data as T;
-    } on DioException catch (e) {
-      throw await _handleError(e);
+    } on DioException catch (e, stackTrace) {
+      throw await _handleError(e, stackTrace);
+    } catch (e, stackTrace) {
+      _logger.e('Non-Dio error during POST request to $path', e, stackTrace);
+      final nonDioFailure = DioExceptionHandler.handleNonDioError(e);
+      _errorHandler.handleException(e, stackTrace);
+      throw nonDioFailure;
     }
   }
 
@@ -235,12 +239,19 @@ class DioService implements IRestService {
       _cancelTokens.remove(cancelToken);
 
       if (response.data == null) {
-        throw ServerFailure('Response data is null');
+        final nullResponseFailure = DioExceptionHandler.handleNullResponse();
+        _errorHandler.handleError(nullResponseFailure);
+        throw nullResponseFailure;
       }
 
       return response.data as T;
-    } on DioException catch (e) {
-      throw await _handleError(e);
+    } on DioException catch (e, stackTrace) {
+      throw await _handleError(e, stackTrace);
+    } catch (e, stackTrace) {
+      _logger.e('Non-Dio error during PUT request to $path', e, stackTrace);
+      final nonDioFailure = DioExceptionHandler.handleNonDioError(e);
+      _errorHandler.handleException(e, stackTrace);
+      throw nonDioFailure;
     }
   }
 
@@ -264,12 +275,19 @@ class DioService implements IRestService {
       _cancelTokens.remove(cancelToken);
 
       if (response.data == null) {
-        throw ServerFailure('Response data is null');
+        final nullResponseFailure = DioExceptionHandler.handleNullResponse();
+        _errorHandler.handleError(nullResponseFailure);
+        throw nullResponseFailure;
       }
 
       return response.data as T;
-    } on DioException catch (e) {
-      throw await _handleError(e);
+    } on DioException catch (e, stackTrace) {
+      throw await _handleError(e, stackTrace);
+    } catch (e, stackTrace) {
+      _logger.e('Non-Dio error during DELETE request to $path', e, stackTrace);
+      final nonDioFailure = DioExceptionHandler.handleNonDioError(e);
+      _errorHandler.handleException(e, stackTrace);
+      throw nonDioFailure;
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mobile_app/core/error/failures.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 part 'error_handler.g.dart';
 
@@ -96,27 +97,38 @@ bool hasError(Ref ref) {
   return ref.watch(currentErrorProvider) != null;
 }
 
-/// Extension method for GlobalKey<NavigatorState> to show error dialogs
+/// Extension method for GlobalKey<NavigatorState> to show error toasts
 extension ErrorNavigatorExtension on GlobalKey<NavigatorState> {
-  /// Show an error dialog with the provided failure
-  void showErrorDialog(Failure failure) {
+  /// Show an error toast with the provided failure
+  void showErrorToast(Failure failure, {String? title}) {
     final context = currentContext;
     if (context == null) return;
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(failure is ConnectionFailure 
-            ? 'Connection Error' 
-            : 'Error Occurred'),
-        content: Text(failure.message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+
+    // Hiển thị toast
+    ShadToaster.of(context).show(
+      ShadToast.destructive(
+        title: Text(title ?? _getErrorTitle(failure)),
+        description: Text(failure.message),
+        action: ShadButton.destructive(
+          child: const Text('Đóng'),
+          onPressed: () {
+            ShadToaster.of(context).hide();
+          },
+        ),
       ),
     );
+  }
+
+  // Helper method to get error title based on failure type
+  String _getErrorTitle(Failure failure) {
+    return switch (failure) {
+      ConnectionFailure() => 'Lỗi kết nối',
+      UnauthorizedFailure() => 'Không có quyền truy cập',
+      ForbiddenFailure() => 'Truy cập bị từ chối',
+      ValidationFailure() => 'Dữ liệu không hợp lệ',
+      HttpFailure() => 'Lỗi yêu cầu',
+      ServerFailure() => 'Lỗi máy chủ',
+      _ => 'Đã xảy ra lỗi',
+    };
   }
 } 
