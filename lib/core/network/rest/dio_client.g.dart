@@ -6,7 +6,7 @@ part of 'dio_client.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cacheOptionsHash() => r'fb2ebf1a02e80097002120d0ea10336135fdebfc';
+String _$cacheOptionsHash() => r'1a793fe66f94ecb2c93e61c37986829ae6df2e00';
 
 /// Provider cho cache options
 ///

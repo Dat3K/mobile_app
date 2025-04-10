@@ -4,6 +4,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:mobile_app/core/constants/route_paths.dart';
 import 'package:mobile_app/features/auth/presentation/pages/login_page.dart';
 import 'package:mobile_app/features/student/presentation/pages/student_home_page.dart';
+import 'package:mobile_app/features/student/presentation/pages/student_profile_page.dart';
+import 'package:mobile_app/features/student/presentation/pages/student_form_page.dart';
+import 'package:mobile_app/features/student/presentation/pages/student_list_page.dart';
+import 'package:mobile_app/features/student/presentation/pages/student_paginated_list_page.dart';
 import 'package:mobile_app/features/enterprise/presentation/pages/enterprise_home_page.dart';
 import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:mobile_app/core/widgets/app_scaffold.dart';
@@ -32,7 +36,7 @@ GoRouter router(Ref ref) {
         name: 'login',
         builder: (context, state) => const LoginPage(),
       ),
-      
+
       // Student Routes
       ShellRoute(
         builder: (context, state, child) {
@@ -64,13 +68,36 @@ GoRouter router(Ref ref) {
           GoRoute(
             path: RoutePaths.studentProfile,
             name: 'studentProfile',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Profile Page')),
-            ),
+            builder: (context, state) => const StudentProfilePage(),
+          ),
+          GoRoute(
+            path: RoutePaths.studentList,
+            name: 'studentList',
+            builder: (context, state) => const StudentListPage(),
+          ),
+          GoRoute(
+            path: RoutePaths.studentPaginatedList,
+            name: 'studentPaginatedList',
+            builder: (context, state) => const StudentPaginatedListPage(),
+          ),
+          GoRoute(
+            path: RoutePaths.studentForm,
+            name: 'studentForm',
+            builder: (context, state) => const StudentFormPage(),
+          ),
+          GoRoute(
+            path: RoutePaths.studentEdit,
+            name: 'studentEdit',
+            builder: (context, state) {
+              final studentId = state.uri.queryParameters['id'];
+              return StudentFormPage(
+                isEditing: true,
+              );
+            },
           ),
         ],
       ),
-      
+
       // Enterprise Routes - Sử dụng Bottom Nav
       ShellRoute(
         builder: (context, state, child) {
@@ -114,4 +141,4 @@ GoRouter router(Ref ref) {
       ),
     ],
   );
-} 
+}

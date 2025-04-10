@@ -6,7 +6,7 @@ part of 'router.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routerHash() => r'38da233744c38ae0c1c77cb017537d0c5ef08c91';
+String _$routerHash() => r'5b04f8a1d2727ecf3c22aceafcda00861c0a7e78';
 
 /// Provider cho router - giữ instance trong suốt vòng đời ứng dụng
 ///

@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/student_provider.dart';
+import 'student_form_page.dart';
+import 'student_list_page.dart';
+import 'student_paginated_list_page.dart';
+import 'student_profile_page.dart';
 
 class StudentHomePage extends ConsumerWidget {
   const StudentHomePage({super.key});
@@ -21,9 +26,7 @@ class StudentHomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: ref.watch(isLoadingProvider)
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
               padding: EdgeInsets.all(16.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,13 +44,13 @@ class StudentHomePage extends ConsumerWidget {
   }
 }
 
-class _StudentDashboardGrid extends StatelessWidget {
+class _StudentDashboardGrid extends ConsumerWidget {
   const _StudentDashboardGrid(this.authState);
 
   final AuthState authState;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -56,28 +59,68 @@ class _StudentDashboardGrid extends StatelessWidget {
       crossAxisSpacing: 16.h,
       children: [
         _DashboardCard(
-          icon: Icons.school,
-          title: 'My Courses',
+          icon: Icons.person,
+          title: 'My Profile',
           onTap: () {
-           
+            // Load current user's student profile
+            final user = authState.user;
+            if (user != null) {
+              ref.read(studentNotifierProvider.notifier).getStudentByUserId(user.id);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const StudentProfilePage(),
+                ),
+              );
+            }
           },
         ),
         _DashboardCard(
-          icon: Icons.assignment_turned_in,
-          title: 'Assignments',
+          icon: Icons.edit,
+          title: 'Edit Profile',
           onTap: () {
+            // Load current user's student profile and navigate to edit form
+            final user = authState.user;
+            if (user != null) {
+              ref.read(studentNotifierProvider.notifier).getStudentByUserId(user.id);
+              final student = ref.read(studentNotifierProvider).currentStudent;
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => StudentFormPage(
+                    student: student,
+                    isEditing: student != null,
+                  ),
+                ),
+              );
+            }
           },
         ),
         _DashboardCard(
-          icon: Icons.grade,
-          title: 'Grades',
+          icon: Icons.people,
+          title: 'All Students',
           onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const StudentListPage(),
+              ),
+            );
+          },
+        ),
+        _DashboardCard(
+          icon: Icons.filter_list,
+          title: 'Search Students',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const StudentPaginatedListPage(),
+              ),
+            );
           },
         ),
         _DashboardCard(
           icon: Icons.event,
           title: 'Events',
           onTap: () {
+            // Navigate to events page (to be implemented)
           },
         ),
       ],

@@ -58,17 +58,17 @@ class GraphQLClientAdapter implements IApiClient {
     try {
       // Combine data and params for GraphQL variables
       final variables = <String, dynamic>{};
-      
+
       if (params != null) {
         variables.addAll(params);
       }
-      
+
       if (data is Map<String, dynamic>) {
         variables.addAll(data);
       } else if (data != null) {
         variables['input'] = data;
       }
-      
+
       return await _graphQLService.mutation<T>(
         mutation: endpoint,
         variables: variables,
@@ -140,4 +140,4 @@ class GraphQLClientAdapter implements IApiClient {
   Future<void> clearCache() async {
     _logger.d('Clear cache chưa được hỗ trợ trong GraphQL client');
   }
-} 
+}

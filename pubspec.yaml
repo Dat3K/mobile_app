@@ -20,7 +20,7 @@ version: 1.0.0+1
 
 environment:
   sdk: ">=3.6.1 <4.0.0"
-  
+
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -79,6 +79,7 @@ dependencies:
   dartz: ^0.10.1
   logger: ^2.5.0
   equatable: ^2.0.7
+  uuid: ^4.3.3
 
   # Code Generation
   freezed_annotation: ^2.4.1
@@ -134,24 +135,24 @@ flutter:
 flutter_native_splash:
   # Màu nền của splash screen - có thể dùng hex color hoặc tên màu material
   color: "#0066AB" # màu đen
-  
+
   # Màu nền cho dark mode
   color_dark: "#000000"
-  
+
   # Hiển thị hình ảnh ứng dụng
   image: "assets/images/logos/logo_480x265.png"
-  
+
   # Đường dẫn đến hình ảnh splash cho dark mode (tuỳ chọn)
   # image_dark: "assets/images/logo_dark.png"
-  
+
   # Tùy chỉnh trạng thái thanh status bar trên Android và iOS
   android_gravity: center
   ios_content_mode: center
-  
+
   # Màu sắc cho status bar và navigation bar
   android_screen_orientation: portrait
   fullscreen: true
-  
+
   # Cấu hình cho Android 12
   android_12:
     # Màu sắc cho splash screen trên Android 12
@@ -161,10 +162,10 @@ flutter_native_splash:
     icon_background_color_dark: "#000000" # màu đen
     image: "assets/images/logos/logo_480x265.png"
     # image_dark: "assets/images/logo_dark.png"
-    
+
   # Web splash (disable cho dự án này)
   web: false
-  
+
   # Tùy chọn tạo branding text ở phía dưới (tùy chọn)
   # branding: assets/images/branding.png
   # branding_dark: assets/images/branding_dark.png
