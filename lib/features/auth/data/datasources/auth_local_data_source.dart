@@ -13,13 +13,13 @@ abstract class IAuthLocalDataSource {
 
 class AuthLocalDataSource implements IAuthLocalDataSource {
   final SecureStorageService _secureStorage;
-  final HiveStorageService _hiveStorage;
-  final LoggerService _logger;
+  final IStorageService _hiveStorage;
+  final ILoggerService _logger;
 
   AuthLocalDataSource({
-    required HiveStorageService hiveStorage,
+    required IStorageService hiveStorage,
     required SecureStorageService secureStorage,
-    required LoggerService logger,
+    required ILoggerService logger,
   })  : _hiveStorage = hiveStorage,
         _secureStorage = secureStorage,
         _logger = logger;

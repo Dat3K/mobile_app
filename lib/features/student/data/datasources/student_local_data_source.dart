@@ -25,12 +25,12 @@ abstract class IStudentLocalDataSource {
 }
 
 class StudentLocalDataSource implements IStudentLocalDataSource {
-  final HiveStorageService _storage;
-  final LoggerService _logger;
+  final IStorageService _storage;
+  final ILoggerService _logger;
 
   StudentLocalDataSource({
-    required HiveStorageService storage,
-    required LoggerService logger,
+    required IStorageService storage,
+    required ILoggerService logger,
   })  : _storage = storage,
         _logger = logger;
 

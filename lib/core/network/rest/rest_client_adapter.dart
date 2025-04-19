@@ -20,11 +20,11 @@ RestClientAdapter restClientAdapter(Ref ref) {
 /// Class adapter để kết nối IRestClient với IApiClient interface
 class RestClientAdapter implements IApiClient {
   final IRestService _restService;
-  final LoggerService _logger;
+  final ILoggerService _logger;
 
   RestClientAdapter({
     required IRestService client,
-    required LoggerService logger,
+    required ILoggerService logger,
   })  : _restService = client,
         _logger = logger;
 

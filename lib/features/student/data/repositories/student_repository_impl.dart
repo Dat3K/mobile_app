@@ -13,12 +13,12 @@ import '../models/student_model.dart';
 class StudentRepository implements IStudentRepository {
   final IStudentRemoteDataSource _remoteDataSource;
   final IStudentLocalDataSource _localDataSource;
-  final LoggerService _logger;
+  final ILoggerService _logger;
 
   StudentRepository({
     required IStudentRemoteDataSource remoteDataSource,
     required IStudentLocalDataSource localDataSource,
-    required LoggerService logger,
+    required ILoggerService logger,
   })  : _remoteDataSource = remoteDataSource,
         _localDataSource = localDataSource,
         _logger = logger;

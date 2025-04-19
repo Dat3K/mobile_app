@@ -26,13 +26,13 @@ class CsrfInterceptor extends Interceptor {
   final Dio _dio;
   final CsrfTokenService _csrfTokenService;
   final CookieService _cookieService;
-  final LoggerService _logger;
+  final ILoggerService _logger;
 
   CsrfInterceptor({
     required Dio dio,
     required CsrfTokenService csrfTokenService,
     required CookieService cookieService,
-    required LoggerService logger,
+    required ILoggerService logger,
   })  : _dio = dio,
         _csrfTokenService = csrfTokenService,
         _cookieService = cookieService,

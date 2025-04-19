@@ -33,7 +33,7 @@ DioService dioService(Ref ref) {
 /// HTTP client sử dụng Dio với đầy đủ interceptor và cấu hình
 class DioService implements IRestService {
   final Dio _dio;
-  final LoggerService _logger;
+  final ILoggerService _logger;
   final CookieService _cookieService;
   final CsrfInterceptor _csrfInterceptor;
   final ErrorHandler _errorHandler;
@@ -41,7 +41,7 @@ class DioService implements IRestService {
 
   DioService({
     required Dio dio,
-    required LoggerService logger,
+    required ILoggerService logger,
     required CookieService cookieService,
     required CsrfInterceptor csrfInterceptor,
     required ErrorHandler errorHandler,
