@@ -26,7 +26,7 @@ SecureStorageService secureStorageService(Ref ref) {
 /// Service để quản lý storage bảo mật
 class SecureStorageService {
   final FlutterSecureStorage _storage;
-  final LoggerService _logger;
+  final ILoggerService _logger;
 
   SecureStorageService({
     required FlutterSecureStorage storage,

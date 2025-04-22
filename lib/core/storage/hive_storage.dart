@@ -57,7 +57,7 @@ abstract class IStorageService {
 }
 
 class HiveStorageService implements IStorageService {
-  final LoggerService _logger;
+  final ILoggerService _logger;
   final Map<String, Timer> _compactionTimers = {};
   final Map<String, Box> _boxes = {};
 

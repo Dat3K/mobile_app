@@ -32,7 +32,7 @@ class AuthState with _$AuthState {
 /// Auth notifier để quản lý state authentication
 @riverpod
 class AuthNotifier extends _$AuthNotifier {
-  late final LoggerService _logger;
+  late final ILoggerService _logger;
   late final NavigationService _navigationService;
   
   @override

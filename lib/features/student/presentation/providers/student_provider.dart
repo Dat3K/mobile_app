@@ -41,7 +41,7 @@ class StudentState with _$StudentState {
 /// Student notifier to manage student state
 @riverpod
 class StudentNotifier extends _$StudentNotifier {
-  late final LoggerService _logger;
+  late final ILoggerService _logger;
 
   @override
   StudentState build() {

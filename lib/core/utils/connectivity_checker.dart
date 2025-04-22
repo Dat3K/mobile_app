@@ -11,7 +11,7 @@ part 'connectivity_checker.g.dart';
 /// Service to check and monitor network connectivity
 class ConnectivityService {
   final Connectivity _connectivity;
-  final LoggerService _logger;
+  final ILoggerService _logger;
   final ErrorHandler _errorHandler;
   StreamSubscription? _connectivitySubscription;
   
