@@ -12,7 +12,7 @@ import 'package:mobile_app/features/auth/data/models/user_model.dart';
 import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
 
 // Student Models
-import 'package:mobile_app/features/student/data/models/student_model_hive.dart';
+import 'package:mobile_app/features/student/data/models/student_model.dart';
 
 // Enterprise Models
 import 'package:mobile_app/features/enterprise/data/models/enterprise_model.dart';
@@ -95,7 +95,7 @@ class HiveStorageService implements IStorageService {
 
     // Student Types
     if (!Hive.isAdapterRegistered(HiveTypeIds.student)) {
-      Hive.registerAdapter(StudentModelHiveAdapter());
+      Hive.registerAdapter(StudentModelAdapter());
     }
 
     // Enterprise Types
@@ -155,35 +155,96 @@ class HiveStorageService implements IStorageService {
         if (Hive.isBoxOpen(boxName)) {
           final box = Hive.box(boxName);
           if (box is Box<T>) {
+            _logger.d('Box $boxName is already open and of correct type');
             return box;
           }
           // Nếu box đã mở nhưng không đúng kiểu, đóng và mở lại
+          _logger.d('Box $boxName is open but not of type ${T.toString()}, closing it');
           await box.close();
         }
-        return await Hive.openBox<T>(boxName);
+
+        _logger.d('Opening box $boxName of type ${T.toString()}');
+
+        // Thử mở box với các tham số cụ thể
+        final box = await Hive.openBox<T>(
+          boxName,
+          compactionStrategy: (entries, deletedEntries) {
+            return deletedEntries > 50 || deletedEntries > 0.1 * entries;
+          },
+        );
+
+        _logger.d('Box $boxName opened successfully with ${box.length} entries');
+        return box;
       } catch (e, stackTrace) {
         attempts++;
         _logger.w(
-          'Failed to open box $boxName (attempt $attempts/$maxRetries)',
+          'Failed to open box $boxName (attempt $attempts/$maxRetries): $e',
           e,
           stackTrace,
         );
+
+        // Nếu lỗi là do box đã mở, thử đóng và mở lại
+        if (e.toString().contains('already open')) {
+          try {
+            _logger.d('Box $boxName is already open, trying to close and reopen');
+            if (Hive.isBoxOpen(boxName)) {
+              await Hive.box(boxName).close();
+            }
+            continue; // Thử lại ngay lập tức
+          } catch (closeError) {
+            _logger.w('Failed to close box $boxName: $closeError');
+          }
+        }
+
+        // Nếu lỗi là do box bị hỏng, thử xóa và tạo lại
+        if (e.toString().contains('corrupted') || e.toString().contains('not found')) {
+          try {
+            _logger.d('Box $boxName is corrupted or not found, attempting recovery');
+            await _recoverBox(boxName);
+            continue; // Thử lại ngay lập tức
+          } catch (recoverError) {
+            _logger.w('Failed to recover box $boxName: $recoverError');
+          }
+        }
+
         if (attempts == maxRetries) {
+          _logger.e('Max retries reached for box $boxName, attempting recovery');
           await _recoverBox(boxName);
           rethrow;
         }
+
         await Future.delayed(StorageKeys.retryDelay * attempts);
       }
     }
-    throw CacheException('Failed to open box after $maxRetries attempts');
+    throw CacheException('Failed to open box $boxName after $maxRetries attempts');
   }
 
   Future<void> _recoverBox(String boxName) async {
     try {
+      // Đảm bảo box đã đóng trước khi xóa
+      if (Hive.isBoxOpen(boxName)) {
+        try {
+          await Hive.box(boxName).close();
+          _logger.d('Closed box $boxName before recovery');
+        } catch (closeError) {
+          _logger.w('Failed to close box $boxName before recovery: $closeError');
+          // Tiếp tục với việc xóa dù không đóng được
+        }
+      }
+
+      // Xóa box khỏi ổ đĩa
       await Hive.deleteBoxFromDisk(boxName);
       _logger.i('Deleted corrupted box: $boxName');
+
+      // Xóa khỏi cache nếu có
+      _boxes.remove(boxName);
+      _compactionTimers[boxName]?.cancel();
+      _compactionTimers.remove(boxName);
+      _inactivityTimers[boxName]?.cancel();
+      _inactivityTimers.remove(boxName);
+      _lastAccessTimes.remove(boxName);
     } catch (e, stackTrace) {
-      _logger.e('Failed to recover box $boxName', e, stackTrace);
+      _logger.e('Failed to recover box $boxName: $e', e, stackTrace);
     }
   }
 
@@ -264,6 +325,21 @@ class HiveStorageService implements IStorageService {
         } else if (box != null) {
           _logger.d('Box $boxName is closed, removing from cache');
           _boxes.remove(boxName);
+        }
+      }
+
+      // Kiểm tra xem box đã được mở trong Hive chưa
+      if (Hive.isBoxOpen(boxName)) {
+        final box = Hive.box(boxName);
+        if (box is Box<T>) {
+          _logger.d('Box $boxName is already open in Hive, using it');
+          _boxes[boxName] = box;
+          _setupCompactionTimer(boxName);
+          _setupInactivityTimer(boxName);
+          return box;
+        } else {
+          _logger.d('Box $boxName is open in Hive but not of type ${T.toString()}, closing it');
+          await box.close();
         }
       }
 

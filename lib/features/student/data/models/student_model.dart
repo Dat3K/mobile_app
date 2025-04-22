@@ -1,20 +1,22 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hive/hive.dart';
+import 'package:mobile_app/core/constants/hive_type_ids.dart';
 import '../../domain/entities/student_entity.dart';
 
 part 'student_model.g.dart';
 part 'student_model.freezed.dart';
 
-// Freezed model for business logic
 @freezed
+@HiveType(typeId: HiveTypeIds.student)
 class StudentModel with _$StudentModel {
   const factory StudentModel({
-    required String id,
-    required String userId,
-    required String major,
-    required int graduationYear,
-    required int enrollmentYear,
-    required List<String> skills,
-    String? currentEnterpriseId,
+    @HiveField(0) required String id,
+    @HiveField(1) required String userId,
+    @HiveField(2) required String major,
+    @HiveField(3) required int graduationYear,
+    @HiveField(4) required int enrollmentYear,
+    @HiveField(5) required List<String> skills,
+    @HiveField(6) String? currentEnterpriseId,
   }) = _StudentModel;
 
   factory StudentModel.fromJson(Map<String, dynamic> json) =>
