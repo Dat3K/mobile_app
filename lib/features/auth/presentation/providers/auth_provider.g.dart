@@ -116,7 +116,7 @@ final failureMessageProvider = AutoDisposeProvider<String?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FailureMessageRef = AutoDisposeProviderRef<String?>;
-String _$authNotifierHash() => r'7504c71204fa0802da2f410c9157f195306c3e68';
+String _$authNotifierHash() => r'46db7bccc7b7c08da5db918c2dcd9a65b8fc3d89';
 
 /// Auth notifier để quản lý state authentication
 ///

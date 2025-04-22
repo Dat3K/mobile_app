@@ -81,7 +81,7 @@ final isStudentLoadingProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsStudentLoadingRef = AutoDisposeProviderRef<bool>;
-String _$studentNotifierHash() => r'f992bf6907959d32e9e9c3b0e5f5bd495635f4e5';
+String _$studentNotifierHash() => r'd9b4fa84b69c4d5b5cebe4ed8d4639bf76be20a9';
 
 /// Student notifier to manage student state
 ///

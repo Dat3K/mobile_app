@@ -12,7 +12,7 @@ import 'package:mobile_app/features/auth/data/models/user_model.dart';
 import 'package:mobile_app/features/auth/data/models/user_role_model.dart';
 
 // Student Models
-import 'package:mobile_app/features/student/data/models/student_model.dart';
+import 'package:mobile_app/features/student/data/models/student_model_hive.dart';
 
 // Enterprise Models
 import 'package:mobile_app/features/enterprise/data/models/enterprise_model.dart';
@@ -95,7 +95,7 @@ class HiveStorageService implements IStorageService {
 
     // Student Types
     if (!Hive.isAdapterRegistered(HiveTypeIds.student)) {
-      Hive.registerAdapter(StudentModelAdapter());
+      Hive.registerAdapter(StudentModelHiveAdapter());
     }
 
     // Enterprise Types
