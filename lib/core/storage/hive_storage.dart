@@ -154,9 +154,10 @@ class HiveStorageService implements IStorageService {
           if (box is Box<T>) {
             return box;
           }
-          // Nếu box đã mở nhưng không đúng kiểu, đóng và mở lại
+          // If box is already open but of the wrong type, close and open again
           await box.close();
         }
+        _logger.d('Opening box: $boxName');
         return await Hive.openBox<T>(boxName);
       } catch (e, stackTrace) {
         attempts++;
@@ -203,23 +204,23 @@ class HiveStorageService implements IStorageService {
 
   Future<Box<T>> _getBox<T>(String boxName) async {
     try {
-      // Kiểm tra xem box đã được mở và còn hợp lệ không
+      // Check if box is already open
       if (_boxes.containsKey(boxName)) {
         final box = _boxes[boxName];
         if (box != null && box.isOpen) {
           if (box is Box<T>) {
             return box;
           }
-          // Nếu box không đúng kiểu, đóng nó đi
+          // If box is of the wrong type, close it
           await box.close();
         }
       }
 
-      // Mở box mới với retry logic
+      // Open new box with retry logic
       final box = await _openBoxWithRetry<T>(boxName);
       _boxes[boxName] = box;
       
-      // Set up compaction timer cho box mới
+      // Set up compaction timer for new box
       _setupCompactionTimer(boxName);
       
       return box;
