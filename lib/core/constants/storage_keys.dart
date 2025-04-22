@@ -23,6 +23,7 @@ class StorageKeys {
 
   // Box Maintenance
   static const Duration compactionInterval = Duration(days: 1);
+  static const Duration inactivityTimeout = Duration(minutes: 5); // Đóng box sau 5 phút không sử dụng
   static const int maxRetryAttempts = 3;
   static const Duration retryDelay = Duration(milliseconds: 200);
 
@@ -41,4 +42,4 @@ class StorageKeys {
         documentBox,
         settingsBox,
       ];
-} 
+}

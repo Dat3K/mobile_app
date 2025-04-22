@@ -53,13 +53,16 @@ abstract class IStorageService {
   Future<void> delete(String key, String boxName);
   Future<void> deleteAll(List<String> keys, String boxName);
   Future<void> clearBox(String boxName);
+  Future<void> closeBox(String boxName);
   Future<void> dispose();
 }
 
 class HiveStorageService implements IStorageService {
   final ILoggerService _logger;
   final Map<String, Timer> _compactionTimers = {};
+  final Map<String, Timer> _inactivityTimers = {};
   final Map<String, Box> _boxes = {};
+  final Map<String, DateTime> _lastAccessTimes = {};
 
   HiveStorageService({
     required LoggerService logger,
@@ -201,31 +204,85 @@ class HiveStorageService implements IStorageService {
     );
   }
 
+  /// Thiết lập bộ hẹn giờ để đóng box sau một khoảng thời gian không hoạt động
+  void _setupInactivityTimer(String boxName) {
+    // Hủy bỏ bộ hẹn giờ cũ (nếu có)
+    _inactivityTimers[boxName]?.cancel();
+
+    // Thiết lập bộ hẹn giờ mới
+    _inactivityTimers[boxName] = Timer(StorageKeys.inactivityTimeout, () async {
+      try {
+        // Kiểm tra xem box có tồn tại và đang mở không
+        final box = _boxes[boxName];
+        if (box == null || !box.isOpen) return;
+
+        // Kiểm tra xem box có được sử dụng gần đây không
+        final lastAccess = _lastAccessTimes[boxName];
+        if (lastAccess == null) return;
+
+        final timeSinceLastAccess = DateTime.now().difference(lastAccess);
+        if (timeSinceLastAccess < StorageKeys.inactivityTimeout) {
+          // Nếu box được sử dụng gần đây, thiết lập lại bộ hẹn giờ
+          _setupInactivityTimer(boxName);
+          return;
+        }
+
+        // Đóng box và xóa khỏi cache
+        _logger.d('Closing box $boxName due to inactivity');
+        await box.close();
+        _boxes.remove(boxName);
+        _compactionTimers[boxName]?.cancel();
+        _compactionTimers.remove(boxName);
+      } catch (e, stackTrace) {
+        _logger.e('Failed to close inactive box $boxName', e, stackTrace);
+      }
+    });
+  }
+
   Future<Box<T>> _getBox<T>(String boxName) async {
     try {
+      // Cập nhật thời gian truy cập
+      _lastAccessTimes[boxName] = DateTime.now();
+
+      // Hủy bỏ bộ hẹn giờ không hoạt động hiện tại (nếu có)
+      _inactivityTimers[boxName]?.cancel();
+
       // Kiểm tra xem box đã được mở và còn hợp lệ không
       if (_boxes.containsKey(boxName)) {
         final box = _boxes[boxName];
         if (box != null && box.isOpen) {
           if (box is Box<T>) {
+            _logger.d('Using existing open box: $boxName');
+            // Thiết lập bộ hẹn giờ không hoạt động mới
+            _setupInactivityTimer(boxName);
             return box;
           }
           // Nếu box không đúng kiểu, đóng nó đi
+          _logger.d('Box $boxName is open but not of type ${T.toString()}, closing it');
           await box.close();
+          _boxes.remove(boxName);
+        } else if (box != null) {
+          _logger.d('Box $boxName is closed, removing from cache');
+          _boxes.remove(boxName);
         }
       }
 
       // Mở box mới với retry logic
+      _logger.d('Opening box $boxName of type ${T.toString()}');
       final box = await _openBoxWithRetry<T>(boxName);
       _boxes[boxName] = box;
-      
+
       // Set up compaction timer cho box mới
       _setupCompactionTimer(boxName);
-      
+
+      // Thiết lập bộ hẹn giờ không hoạt động
+      _setupInactivityTimer(boxName);
+
+      _logger.d('Box $boxName opened successfully');
       return box;
     } catch (e, stackTrace) {
-      _logger.e('Failed to get box $boxName', e, stackTrace);
-      rethrow;
+      _logger.e('Failed to get box $boxName: $e', e, stackTrace);
+      throw CacheException('Failed to get box $boxName: $e');
     }
   }
 
@@ -307,6 +364,33 @@ class HiveStorageService implements IStorageService {
   }
 
   @override
+  Future<void> closeBox(String boxName) async {
+    try {
+      // Kiểm tra xem box có tồn tại và đang mở không
+      if (_boxes.containsKey(boxName)) {
+        final box = _boxes[boxName];
+        if (box != null && box.isOpen) {
+          _logger.d('Closing box $boxName manually');
+          await box.close();
+        }
+        _boxes.remove(boxName);
+      }
+
+      // Hủy bỏ các bộ hẹn giờ
+      _compactionTimers[boxName]?.cancel();
+      _compactionTimers.remove(boxName);
+      _inactivityTimers[boxName]?.cancel();
+      _inactivityTimers.remove(boxName);
+      _lastAccessTimes.remove(boxName);
+
+      _logger.d('Box $boxName closed and removed from cache');
+    } catch (e, stackTrace) {
+      _logger.e('Failed to close box $boxName', e, stackTrace);
+      throw CacheException('Failed to close Hive box: $e');
+    }
+  }
+
+  @override
   Future<void> clear() async {
     try {
       // Close all boxes first
@@ -332,13 +416,21 @@ class HiveStorageService implements IStorageService {
   @override
   Future<void> dispose() async {
     try {
-      // Cancel all compaction timers
+      // Hủy bỏ tất cả các bộ hẹn giờ
       for (final timer in _compactionTimers.values) {
         timer.cancel();
       }
       _compactionTimers.clear();
 
-      // Close all boxes
+      for (final timer in _inactivityTimers.values) {
+        timer.cancel();
+      }
+      _inactivityTimers.clear();
+
+      // Xóa tất cả các thời gian truy cập
+      _lastAccessTimes.clear();
+
+      // Đóng tất cả các box
       await Future.wait([
         for (final box in _boxes.values)
           if (box.isOpen) box.close(),
@@ -359,16 +451,16 @@ extension HiveStorageServiceDebugX on HiveStorageService {
   Future<void> debugClearAllStorage() async {
     try {
       _logger.w('🧹 Clearing all storage...');
-      
+
       // 1. Clear all Hive boxes
       await clear();
-      
+
       // 2. Delete all boxes from disk
       await Hive.deleteFromDisk();
-      
+
       // 3. Re-initialize storage
       await init();
-      
+
       _logger.i('✨ All storage cleared successfully');
     } catch (e, stackTrace) {
       _logger.e('Failed to clear storage during debug', e, stackTrace);
@@ -380,45 +472,50 @@ extension HiveStorageServiceDebugX on HiveStorageService {
   Future<void> debugPrintBoxesStatus() async {
     try {
       _logger.w('🔍 Checking Hive storage status...');
-      
+
       final buffer = StringBuffer();
       buffer.writeln('\n📦 Hive Storage Status Report');
       buffer.writeln('═════════════════════════\n');
-      
+
       final totalBoxes = _boxes.length;
       final openBoxes = _boxes.values.where((box) => box.isOpen).length;
       final totalItems = _boxes.values
           .where((box) => box.isOpen)
           .fold(0, (sum, box) => sum + box.length);
-      
+
       // Tổng quan
       buffer.writeln('📊 Overview:');
       buffer.writeln('  • Total Boxes: $totalBoxes');
       buffer.writeln('  • Open Boxes: $openBoxes');
       buffer.writeln('  • Total Items: $totalItems\n');
-      
+
       // Chi tiết từng box
       if (totalBoxes > 0) {
         buffer.writeln('📋 Detailed Box Information:');
         buffer.writeln('──────────────────────────\n');
-        
+
         for (final boxName in StorageKeys.allBoxes) {
           final box = _boxes[boxName];
           if (box != null) {
             final status = box.isOpen ? '🟢 Open' : '🔴 Closed';
             final itemCount = box.isOpen ? box.length : 'N/A';
-            
+            final lastAccess = _lastAccessTimes[boxName];
+            final lastAccessStr = lastAccess != null
+                ? '${DateTime.now().difference(lastAccess).inSeconds} seconds ago'
+                : 'Never';
+
             buffer.writeln('📎 Box: $boxName');
             buffer.writeln('  • Status: $status');
             buffer.writeln('  • Items: $itemCount');
-            
+            buffer.writeln('  • Last Access: $lastAccessStr');
+
             if (box.isOpen && box.length > 0) {
               buffer.writeln('  • Content:');
               try {
                 for (final key in box.keys) {
                   final value = box.get(key);
                   String displayValue;
-                  
+
                   if (value == null) {
                     displayValue = 'null';
                   } else if (value is Map || value is List) {
@@ -427,12 +524,12 @@ extension HiveStorageServiceDebugX on HiveStorageService {
                   } else {
                     displayValue = value.toString();
                   }
-                  
+
                   // Giới hạn độ dài của displayValue
                   if (displayValue.length > 100) {
                     displayValue = '${displayValue.substring(0, 97)}...';
                   }
-                  
+
                   buffer.writeln('    - $key: $displayValue');
                 }
               } catch (e) {
@@ -450,10 +547,10 @@ extension HiveStorageServiceDebugX on HiveStorageService {
       } else {
         buffer.writeln('ℹ️ No boxes are initialized');
       }
-      
+
       buffer.writeln('═════════════════════════');
       buffer.writeln('✨ Storage status check completed');
-      
+
       // In tất cả thông tin một lần
       _logger.i(buffer.toString());
     } catch (e, stackTrace) {
