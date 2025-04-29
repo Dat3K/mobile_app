@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../data/models/student_filter_model.dart';
 import '../../domain/entities/student_entity.dart';
 import '../providers/student_provider.dart';
-import 'student_profile_page.dart';
 
 class StudentPaginatedListPage extends ConsumerStatefulWidget {
   const StudentPaginatedListPage({super.key});
@@ -20,7 +21,7 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
   final _searchController = TextEditingController();
   String? _selectedMajor;
   int? _selectedYear;
-  
+
   StudentFilterModel get _currentFilter => StudentFilterModel(
     major: _selectedMajor,
     graduationYear: _selectedYear,
@@ -30,10 +31,10 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
   @override
   void initState() {
     super.initState();
-    
+
     // Add scroll listener for pagination
     _scrollController.addListener(_onScroll);
-    
+
     // Load students when the page is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadStudents(resetList: true);
@@ -130,10 +131,10 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
               ],
             ),
           ),
-          
+
           // Divider
           const Divider(),
-          
+
           // Results count
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.sp, vertical: 8.sp),
@@ -158,7 +159,7 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
               ],
             ),
           ),
-          
+
           // Student list
           Expanded(
             child: error != null
@@ -183,7 +184,7 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
                               ),
                             );
                           }
-                          
+
                           final student = students[index];
                           return _buildStudentCard(context, student);
                         },
@@ -201,10 +202,9 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
         onTap: () {
           // Set as current student and navigate to profile page
           ref.read(studentNotifierProvider.notifier).getStudent(student.id);
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const StudentProfilePage(),
-            ),
+          ref.read(navigationServiceProvider).push(
+            RoutePaths.studentProfile,
+            params: {'id': student.id},
           );
         },
         child: Padding(
@@ -237,7 +237,7 @@ class _StudentPaginatedListPageState extends ConsumerState<StudentPaginatedListP
                       ],
                     ),
                   ),
-                
+
                 ],
               ),
               SizedBox(height: 8.h),

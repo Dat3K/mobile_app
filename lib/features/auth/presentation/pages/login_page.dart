@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -150,6 +152,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ShadButton(
                     child: const Text('Get path'),
                     onPressed: () {
+                      final path = ref.read(navigationServiceProvider).getCurrentPath();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Current path: $path')),
+                      );
                     },
                   ),
 
@@ -197,6 +203,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         child: Text('auth.sign_up'.tr()),
                         onPressed: () {
                           // Navigate to register page
+                          ref.read(navigationServiceProvider).push(RoutePaths.register);
                         },
                       ),
                     ],

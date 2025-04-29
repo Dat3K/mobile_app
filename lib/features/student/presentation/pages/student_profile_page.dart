@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -97,6 +99,10 @@ class _StudentProfilePageState extends ConsumerState<StudentProfilePage> {
                           ShadButton(
                             onPressed: () {
                               // Navigate to edit profile page
+                              ref.read(navigationServiceProvider).push(
+                                RoutePaths.studentEdit,
+                                params: {'id': student.id},
+                              );
                             },
                             child: const Text('Edit Profile'),
                           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:mobile_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,18 +25,18 @@ class StudentFormPage extends ConsumerStatefulWidget {
 
 class _StudentFormPageState extends ConsumerState<StudentFormPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   late final TextEditingController _majorController;
   late final TextEditingController _enrollmentYearController;
   late final TextEditingController _graduationYearController;
   late final TextEditingController _skillsController;
-  
+
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize controllers with existing data if editing
     _majorController = TextEditingController(text: widget.student?.major ?? '');
     _enrollmentYearController = TextEditingController(
@@ -104,7 +105,7 @@ class _StudentFormPageState extends ConsumerState<StudentFormPage> {
         }
 
         if (mounted) {
-          Navigator.of(context).pop();
+          ref.read(navigationServiceProvider).pop();
         }
       } catch (e) {
         if (mounted) {
@@ -169,7 +170,7 @@ class _StudentFormPageState extends ConsumerState<StudentFormPage> {
                               },
                             ),
                             SizedBox(height: 16.h),
-                            
+
                             // Enrollment Year field
                             ShadInputFormField(
                               controller: _enrollmentYearController,
@@ -187,7 +188,7 @@ class _StudentFormPageState extends ConsumerState<StudentFormPage> {
                               },
                             ),
                             SizedBox(height: 16.h),
-                            
+
                             // Graduation Year field
                             ShadInputFormField(
                               controller: _graduationYearController,
@@ -210,7 +211,7 @@ class _StudentFormPageState extends ConsumerState<StudentFormPage> {
                               },
                             ),
                             SizedBox(height: 16.h),
-                            
+
                             // Skills field
                             ShadInputFormField(
                               controller: _skillsController,
@@ -223,7 +224,7 @@ class _StudentFormPageState extends ConsumerState<StudentFormPage> {
                       ),
                     ),
                     SizedBox(height: 24.h),
-                    
+
                     // Submit button
                     ShadButton(
                       onPressed: _isSubmitting ? null : _submitForm,

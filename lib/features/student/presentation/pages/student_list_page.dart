@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import 'package:mobile_app/core/widgets/error_display.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../domain/entities/student_entity.dart';
 import '../providers/student_provider.dart';
-import 'student_profile_page.dart';
 
 class StudentListPage extends ConsumerStatefulWidget {
   const StudentListPage({super.key});
@@ -87,10 +88,9 @@ class _StudentListPageState extends ConsumerState<StudentListPage> {
         onTap: () {
           // Set as current student and navigate to profile page
           ref.read(studentNotifierProvider.notifier).getStudent(student.id);
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const StudentProfilePage(),
-            ),
+          ref.read(navigationServiceProvider).push(
+            RoutePaths.studentProfile,
+            params: {'id': student.id},
           );
         },
         child: Padding(
@@ -181,12 +181,12 @@ class _StudentListPageState extends ConsumerState<StudentListPage> {
         content: Text('Are you sure you want to delete this student?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => ref.read(navigationServiceProvider).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              ref.read(navigationServiceProvider).pop();
               ref
                   .read(studentNotifierProvider.notifier)
                   .deleteStudent(student.id);

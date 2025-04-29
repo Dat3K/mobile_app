@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:mobile_app/core/constants/route_paths.dart';
+import 'package:mobile_app/core/services/navigation_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/student_provider.dart';
-import 'student_form_page.dart';
-import 'student_list_page.dart';
-import 'student_paginated_list_page.dart';
-import 'student_profile_page.dart';
 
 class StudentHomePage extends ConsumerWidget {
   const StudentHomePage({super.key});
@@ -51,6 +49,8 @@ class _StudentDashboardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final navigationService = ref.read(navigationServiceProvider);
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -66,11 +66,7 @@ class _StudentDashboardGrid extends ConsumerWidget {
             final user = authState.user;
             if (user != null) {
               ref.read(studentNotifierProvider.notifier).getStudentByUserId(user.id);
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const StudentProfilePage(),
-                ),
-              );
+              navigationService.push(RoutePaths.studentProfile);
             }
           },
         ),
@@ -83,14 +79,11 @@ class _StudentDashboardGrid extends ConsumerWidget {
             if (user != null) {
               ref.read(studentNotifierProvider.notifier).getStudentByUserId(user.id);
               final student = ref.read(studentNotifierProvider).currentStudent;
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => StudentFormPage(
-                    student: student,
-                    isEditing: student != null,
-                  ),
-                ),
-              );
+              if (student != null) {
+                navigationService.push(RoutePaths.studentEdit, params: {'id': student.id});
+              } else {
+                navigationService.push(RoutePaths.studentForm);
+              }
             }
           },
         ),
@@ -98,22 +91,14 @@ class _StudentDashboardGrid extends ConsumerWidget {
           icon: Icons.people,
           title: 'All Students',
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const StudentListPage(),
-              ),
-            );
+            navigationService.push(RoutePaths.studentList);
           },
         ),
         _DashboardCard(
           icon: Icons.filter_list,
           title: 'Search Students',
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const StudentPaginatedListPage(),
-              ),
-            );
+            navigationService.push(RoutePaths.studentPaginatedList);
           },
         ),
         _DashboardCard(
@@ -121,6 +106,7 @@ class _StudentDashboardGrid extends ConsumerWidget {
           title: 'Events',
           onTap: () {
             // Navigate to events page (to be implemented)
+            // Will use navigationService when implemented
           },
         ),
       ],
