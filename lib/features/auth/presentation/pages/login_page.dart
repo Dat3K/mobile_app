@@ -7,7 +7,6 @@ import 'package:mobile_app/features/auth/presentation/providers/auth_provider.da
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Import flutter_svg
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
