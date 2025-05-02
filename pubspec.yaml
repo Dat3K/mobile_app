@@ -140,7 +140,7 @@ flutter_native_splash:
   color_dark: "#000000"
 
   # Hiển thị hình ảnh ứng dụng
-  image: "assets/images/logos/logo_480x265.png"
+  image: "assets/images/logos/logo_192x106.png"
 
   # Đường dẫn đến hình ảnh splash cho dark mode (tuỳ chọn)
   # image_dark: "assets/images/logo_dark.png"
@@ -160,7 +160,7 @@ flutter_native_splash:
     color_dark: "#000000" # màu đen
     icon_background_color: "##0066AB" # màu đen
     icon_background_color_dark: "#000000" # màu đen
-    image: "assets/images/logos/logo_480x265.png"
+    image: "assets/images/logos/logo_192x106.png"
     # image_dark: "assets/images/logo_dark.png"
 
   # Web splash (disable cho dự án này)
@@ -195,3 +195,6 @@ flutter_native_splash:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+  
+dependency_overrides:
+  intl: ^0.20.2

@@ -167,3 +167,4 @@ lib/gen/
 *.drift.g.dart
 
 .windsurfrules
+.roo/
