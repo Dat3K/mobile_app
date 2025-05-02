@@ -7,6 +7,7 @@ import 'package:mobile_app/features/auth/presentation/providers/auth_provider.da
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart'; // Import flutter_svg
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -50,174 +51,202 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
+    final theme = ShadTheme.of(context); // Lấy theme hiện tại
 
-    // Create layout content
-    Widget content = Center(
-      child: SingleChildScrollView(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: 400.w),
-          padding: EdgeInsets.all(24.sp),
-          child: ShadCard(
-            title: Text('auth.welcome_back'.tr()),
-            description: Text('auth.login_description'.tr()),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: 24.h),
+    return Scaffold(
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 48.h),
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 400.w),
+            child: ShadCard(
+              title: Text(
+                'auth.welcome_back'.tr(),
+                style: theme.textTheme.h4, // Sử dụng text style từ Shadcn theme
+              ),
+              description: Text(
+                'auth.login_description'.tr(),
+                style:
+                    theme.textTheme.muted, // Sử dụng text style từ Shadcn theme
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: 24.h),
 
-                  // Email Field
-                  Text('auth.email'.tr()),
-                  SizedBox(height: 8.h),
-                  ShadInputFormField(
-                    controller: _emailController,
-                    placeholder: Text('auth.enter_email'.tr()),
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: const ShadDecoration(),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'auth.validation.email_required'.tr();
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value)) {
-                        return 'auth.validation.email_invalid'.tr();
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-
-                  // Password Field
-                  Text('auth.password'.tr()),
-                  SizedBox(height: 8.h),
-                  ShadInputFormField(
-                    controller: _passwordController,
-                    placeholder: Text('auth.enter_password'.tr()),
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _onLogin(),
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'auth.validation.password_required'.tr();
-                      }
-                      if (value.length < 6) {
-                        return 'auth.validation.password_length'.tr();
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 16.h),
-
-                  // Remember Me & Forgot Password
-                  Row(
-                    children: [
-                      ShadCheckbox(
-                        value: false,
-                        onChanged: (value) {},
-                        label: Text('auth.remember_me'.tr()),
-                      ),
-                      const Spacer(),
-                      // ShadButton.ghost(
-                      //   child: Text('auth.forgot_password'.tr()),
-                      //   onPressed: () {},
-                      // ),
-                    ],
-                  ),
-                  SizedBox(height: 24.h),
-
-                  // Display error if there is one
-                  if (authState.failure != null)
-                    InlineErrorDisplay(
-                      failure: authState.failure!,
-                      onRetry: _onLogin,
+                    // Email Field
+                    ShadInputFormField(
+                      controller: _emailController,
+                      label: Text('auth.email'.tr()), // Sử dụng label từ Shadcn
+                      placeholder: Text('auth.enter_email'.tr()),
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'auth.validation.email_required'.tr();
+                        }
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                            .hasMatch(value)) {
+                          return 'auth.validation.email_invalid'.tr();
+                        }
+                        return null;
+                      },
                     ),
+                    SizedBox(height: 16.h),
 
-                  // Login Button
-                  authState.isLoading
-                      ? ShadButton(
-                          onPressed: null,
-                          leading:
-                              CircularProgressIndicator(strokeWidth: 2.w),
-                          child: Text('common.please_wait'.tr()),
-                        )
-                      : ShadButton(
-                          onPressed: _onLogin,
-                          child: Text('auth.login'.tr()),
+                    // Password Field
+                    ShadInputFormField(
+                      controller: _passwordController,
+                      label:
+                          Text('auth.password'.tr()), // Sử dụng label từ Shadcn
+                      placeholder: Text('auth.enter_password'.tr()),
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _onLogin(),
+                      obscureText: true, // Ẩn mật khẩu
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'auth.validation.password_required'.tr();
+                        }
+                        if (value.length < 6) {
+                          return 'auth.validation.password_length'.tr();
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16.h),
+
+                    // Remember Me & Forgot Password
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ShadCheckbox(
+                          value: false, // Cần quản lý state này
+                          onChanged: (value) {
+                            // TODO: Implement remember me logic
+                          },
+                          label: Text('auth.remember_me'.tr()),
                         ),
-                  SizedBox(height: 24.h),
+                        // ShadButton.link(
+                        //   text('auth.forgot_password'.tr()),
+                        //   onPressed: () {
+                        //     // TODO: Implement forgot password navigation
+                        //   },
+                        // ),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
 
-                  // Button get path state
-                  ShadButton(
-                    child: const Text('Get path'),
-                    onPressed: () {
-                      final path = ref.read(navigationServiceProvider).getCurrentPath();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Current path: $path')),
-                      );
-                    },
-                  ),
-
-                  // Divider
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
+                    // Display error if there is one
+                    if (authState.failure != null)
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: Text('common.or'.tr()),
+                        padding: EdgeInsets.only(bottom: 16.h),
+                        child: InlineErrorDisplay(
+                          failure: authState.failure!,
+                          onRetry: _onLogin,
+                        ),
                       ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  SizedBox(height: 24.h),
 
-                  // Social Login Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ShadButton.outline(
-                        onPressed: () {},
-                        leading: Icon(Icons.facebook, size: 20.sp),
-                      ),
-                      SizedBox(width: 16.w),
-                      ShadButton.outline(
-                        onPressed: () {},
-                        leading: Icon(Icons.g_mobiledata, size: 20.sp),
-                      ),
-                      SizedBox(width: 16.w),
-                      ShadButton.outline(
-                        onPressed: () {},
-                        leading: Icon(Icons.apple, size: 20.sp),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 24.h),
+                    // Login Button
+                    authState.isLoading
+                        ? ShadButton(
+                            onPressed: null,
+                            leading: SizedBox(
+                              width: 16.w,
+                              height: 16.w,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.w,
+                                color: theme.colorScheme.primaryForeground,
+                              ),
+                            ),
+                            child: Text('common.please_wait'.tr()),
+                          )
+                        : ShadButton(
+                            onPressed: _onLogin,
+                            child: Text('auth.login'.tr()),
+                          ),
+                    SizedBox(height: 24.h),
 
-                  // Register Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('auth.dont_have_account'.tr()),
-                      ShadButton.link(
-                        child: Text('auth.sign_up'.tr()),
-                        onPressed: () {
-                          // Navigate to register page
-                          ref.read(navigationServiceProvider).push(RoutePaths.register);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                    // Divider
+                    Row(
+                      children: [
+                        const Expanded(child: ShadSeparator.horizontal()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          child: Text(
+                            'common.or'.tr(),
+                            style: theme.textTheme
+                                .muted, // Sử dụng text style từ Shadcn theme
+                          ),
+                        ),
+                        const Expanded(child: ShadSeparator.horizontal()),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
+
+                    // Social Login Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ShadButton.outline(
+                          onPressed: () {
+                            // TODO: Implement Facebook login
+                          },
+                          icon: const Icon(Icons.facebook), // Sử dụng Icon
+                        ),
+                        SizedBox(width: 16.w),
+                        ShadButton.outline(
+                          onPressed: () {
+                            // TODO: Implement Google login
+                          },
+                          icon: SvgPicture.asset(
+                            // Sử dụng SvgPicture
+                            theme.brightness == Brightness.dark
+                                ? 'assets/images/auth/google_icon_4.svg' // Icon Google cho dark mode
+                                : 'assets/images/auth/google_icon_3.svg', // Icon Google cho light mode
+                            width: 20.sp,
+                            height: 20.sp,
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        ShadButton.outline(
+                          onPressed: () {
+                            // TODO: Implement Apple login
+                          },
+                          icon: const Icon(Icons.apple), // Sử dụng Icon
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
+
+                    // Register Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'auth.dont_have_account'.tr(),
+                          style: theme.textTheme
+                              .muted, // Sử dụng text style từ Shadcn theme
+                        ),
+                        ShadButton.link(
+                          child: Text('auth.sign_up'.tr()),
+                          onPressed: () {
+                            ref
+                                .read(navigationServiceProvider)
+                                .push(RoutePaths.register);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    );
-
-    return Scaffold(
-      body: content,
     );
   }
 }
