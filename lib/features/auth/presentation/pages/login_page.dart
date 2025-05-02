@@ -51,7 +51,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final theme = ShadTheme.of(context); // Lấy theme hiện tại
+    final theme = ShadTheme.of(context); 
 
     return Scaffold(
       body: Center(
@@ -62,12 +62,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: ShadCard(
               title: Text(
                 'auth.welcome_back'.tr(),
-                style: theme.textTheme.h4, // Sử dụng text style từ Shadcn theme
+                style: theme.textTheme.h4,
               ),
               description: Text(
                 'auth.login_description'.tr(),
                 style:
-                    theme.textTheme.muted, // Sử dụng text style từ Shadcn theme
+                    theme.textTheme.muted,
               ),
               child: Form(
                 key: _formKey,
@@ -85,7 +85,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value.isEmpty) {
                           return 'auth.validation.email_required'.tr();
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
@@ -107,7 +107,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       onSubmitted: (_) => _onLogin(),
                       obscureText: true, // Ẩn mật khẩu
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value.isEmpty) {
                           return 'auth.validation.password_required'.tr();
                         }
                         if (value.length < 6) {
@@ -178,45 +178,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: Text(
                             'common.or'.tr(),
                             style: theme.textTheme
-                                .muted, // Sử dụng text style từ Shadcn theme
+                                .muted,
                           ),
                         ),
                         const Expanded(child: ShadSeparator.horizontal()),
-                      ],
-                    ),
-                    SizedBox(height: 24.h),
-
-                    // Social Login Buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ShadButton.outline(
-                          onPressed: () {
-                            // TODO: Implement Facebook login
-                          },
-                          icon: const Icon(Icons.facebook), // Sử dụng Icon
-                        ),
-                        SizedBox(width: 16.w),
-                        ShadButton.outline(
-                          onPressed: () {
-                            // TODO: Implement Google login
-                          },
-                          icon: SvgPicture.asset(
-                            // Sử dụng SvgPicture
-                            theme.brightness == Brightness.dark
-                                ? 'assets/images/auth/google_icon_4.svg' // Icon Google cho dark mode
-                                : 'assets/images/auth/google_icon_3.svg', // Icon Google cho light mode
-                            width: 20.sp,
-                            height: 20.sp,
-                          ),
-                        ),
-                        SizedBox(width: 16.w),
-                        ShadButton.outline(
-                          onPressed: () {
-                            // TODO: Implement Apple login
-                          },
-                          icon: const Icon(Icons.apple), // Sử dụng Icon
-                        ),
                       ],
                     ),
                     SizedBox(height: 24.h),
@@ -228,7 +193,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         Text(
                           'auth.dont_have_account'.tr(),
                           style: theme.textTheme
-                              .muted, // Sử dụng text style từ Shadcn theme
+                              .muted,
                         ),
                         ShadButton.link(
                           child: Text('auth.sign_up'.tr()),
