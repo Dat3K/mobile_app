@@ -7,7 +7,7 @@ import 'package:mobile_app/core/utils/logger.dart';
 part 'secure_storage.g.dart';
 
 /// Provider cho FlutterSecureStorage instance
-@riverpod
+@Riverpod(keepAlive: true)
 FlutterSecureStorage secureStorage(Ref ref) {
   return const FlutterSecureStorage();
 }

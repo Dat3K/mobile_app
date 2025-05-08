@@ -63,7 +63,7 @@ dependencies:
   dio_smart_retry: ^7.0.1
   connectivity_plus: ^6.1.1
   cookie_jar: ^4.0.8
-  graphql_flutter: ^5.1.2
+  graphql_flutter: ^5.2.0
   gql_dio_link: ^1.0.1+1
 
   # Storage

@@ -6,14 +6,13 @@ part of 'secure_storage.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$secureStorageHash() => r'273dc403a965c1f24962aaf4d40776611a26f8b8';
+String _$secureStorageHash() => r'a4f75721472cf77465bf47f759c90de5ca30856e';
 
 /// Provider cho FlutterSecureStorage instance
 ///
 /// Copied from [secureStorage].
 @ProviderFor(secureStorage)
-final secureStorageProvider =
-    AutoDisposeProvider<FlutterSecureStorage>.internal(
+final secureStorageProvider = Provider<FlutterSecureStorage>.internal(
   secureStorage,
   name: r'secureStorageProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -25,7 +24,7 @@ final secureStorageProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef SecureStorageRef = AutoDisposeProviderRef<FlutterSecureStorage>;
+typedef SecureStorageRef = ProviderRef<FlutterSecureStorage>;
 String _$secureStorageServiceHash() =>
     r'7cad5030f3f28e9019eb3520bf97be87371ffa79';
 
